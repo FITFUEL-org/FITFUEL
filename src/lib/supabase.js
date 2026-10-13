@@ -161,3 +161,9 @@ export function onAuthChange(cb) {
   const { data } = supabase.auth.onAuthStateChange(cb);
   return () => data.subscription.unsubscribe();
 }
+
+/** Verify an emailed link (?token_hash=…&type=…). Works on any device, unlike the PKCE redirect. */
+export async function verifyTokenHash(token_hash, type) {
+  if (!supabase) return OFFLINE;
+  return supabase.auth.verifyOtp({ token_hash, type });
+}

@@ -1,14 +1,15 @@
 import "./styles/main.css";
 import { U, IMG, ui } from "./state.js";
 import { load } from "./storage.js";
-import { $ } from "./ui/dom.js";
+import { $, esc } from "./ui/dom.js";
 import { bindDietForm } from "./ui/diet.js";
 import { bindWizard, draw1 } from "./ui/wizard.js";
 import { bindTabs, enter, go } from "./ui/tabs.js";
 import { fillSub } from "./ui/exercises.js";
 import { auth, bindAuth, showAuth, hideAuth, showReset } from "./ui/auth.js";
 import { initSync, reconcile } from "./sync.js";
-import { isSupabaseEnabled, getSession, onAuthChange } from "./lib/supabase.js";
+import { isSupabaseEnabled, getSession, onAuthChange, verifyTokenHash } from "./lib/supabase.js";
+import { friendlyAuthError } from "./logic/auth.js";
 import { tabFromPath, navigate, ONBOARD_PATH } from "./router.js";
 
 // Apply theme and banner photo from the loaded profile.
@@ -68,6 +69,32 @@ async function init() {
       showAuth();
     }
   });
+
+  // Email links land on /auth/confirm?token_hash=…&type=recovery|email|signup.
+  const q = new URLSearchParams(location.search + "&" + location.hash.slice(1));
+  if (location.pathname === "/auth/confirm" && q.get("token_hash")) {
+    const type = q.get("type") || "email";
+    if (type === "recovery") recovering = true;
+    history.replaceState({}, "", type === "recovery" ? "/reset-password" : "/"); // drop the one-time token from the URL
+    const { data, error } = await verifyTokenHash(q.get("token_hash"), type);
+    if (error) {
+      recovering = false;
+      showAuth(type === "recovery" ? "forgot" : "signin",
+        type === "recovery" ? "That reset link has expired or was already used. Request a new one below." : esc(friendlyAuthError(error)));
+      return;
+    }
+    if (type === "recovery") {
+      auth.user = data.user;
+      showReset(() => { recovering = false; onSignedIn(data.session); });
+      return;
+    }
+    await onSignedIn(data.session);
+    return;
+  }
+  if (q.get("error_description")) {
+    showAuth("signin", esc(q.get("error_description").replace(/\+/g, " ")));
+    return;
+  }
 
   const session = await getSession();
   if (recovering) return;
