@@ -3,6 +3,7 @@
 import type { Profile } from "@/lib/data";
 import type { DayKey, Experience, Goal, Limitation, Split } from "@/lib/planner";
 import { WEEK, DAY_LABEL } from "@/lib/planner";
+import { useState } from "react";
 import { Chip, Field, inputCls } from "./ui";
 
 export type Draft = Partial<Profile>;
@@ -40,12 +41,60 @@ export function AboutFields({ d, set }: P) {
   );
 }
 
+const CM_PER_IN = 2.54;
+const toFtIn = (cm: number | null) => {
+  if (!cm) return { ft: "", inch: "" };
+  const total = Math.round(cm / CM_PER_IN);
+  return { ft: String(Math.floor(total / 12)), inch: String(total % 12) };
+};
+
+/** Height in cm, or feet + inches for people who don't know their cm. Always stored as cm. */
+function HeightInput({ cm, onChange }: { cm: number | null; onChange: (cm: number | null) => void }) {
+  const [unit, setUnit] = useState<"cm" | "ft">("ft");
+  const [fi, setFi] = useState(() => toFtIn(cm));
+
+  function setFeet(next: { ft: string; inch: string }) {
+    setFi(next);
+    const ft = Number(next.ft || 0), inch = Number(next.inch || 0);
+    onChange(next.ft === "" && next.inch === "" ? null : Math.round((ft * 12 + inch) * CM_PER_IN * 10) / 10);
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium">Height</span>
+        <div className="flex rounded-lg border border-line p-0.5 text-xs font-semibold" role="group" aria-label="Height unit">
+          {(["ft", "cm"] as const).map((u) => (
+            <button key={u} type="button" aria-pressed={unit === u}
+              onClick={() => { setUnit(u); if (u === "ft") setFi(toFtIn(cm)); }}
+              className={`rounded-md px-2.5 py-1 ${unit === u ? "bg-accent text-black" : "text-muted"}`}>
+              {u === "ft" ? "ft + in" : "cm"}
+            </button>
+          ))}
+        </div>
+      </div>
+      {unit === "cm" ? (
+        <input className={inputCls} type="number" inputMode="decimal" min={100} max={250} aria-label="Height in cm"
+          value={cm ?? ""} onChange={(e) => onChange(num(e.target.value))} />
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          <input className={inputCls} type="number" inputMode="numeric" min={3} max={8} placeholder="ft" aria-label="Feet"
+            value={fi.ft} onChange={(e) => setFeet({ ...fi, ft: e.target.value })} />
+          <input className={inputCls} type="number" inputMode="numeric" min={0} max={11} placeholder="in" aria-label="Inches"
+            value={fi.inch} onChange={(e) => setFeet({ ...fi, inch: e.target.value })} />
+        </div>
+      )}
+      {cm ? <span className="block text-xs text-muted">{unit === "ft" ? `= ${Math.round(cm)} cm` : `= ${toFtIn(cm).ft}′ ${toFtIn(cm).inch}″`}</span> : null}
+    </div>
+  );
+}
+
 export function BodyFields({ d, set }: P) {
   const bmi = d.height_cm && d.weight_kg ? d.weight_kg / (d.height_cm / 100) ** 2 : null;
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Height (cm)"><input className={inputCls} type="number" inputMode="decimal" min={100} max={250} value={d.height_cm ?? ""} onChange={(e) => set({ height_cm: num(e.target.value) })} /></Field>
+        <HeightInput cm={d.height_cm ?? null} onChange={(cm) => set({ height_cm: cm })} />
         <Field label="Weight (kg)"><input className={inputCls} type="number" inputMode="decimal" min={30} max={300} step="0.1" value={d.weight_kg ?? ""} onChange={(e) => set({ weight_kg: num(e.target.value) })} /></Field>
         <Field label="Target weight (kg)" hint="Optional"><input className={inputCls} type="number" inputMode="decimal" min={30} max={300} step="0.1" value={d.target_weight_kg ?? ""} onChange={(e) => set({ target_weight_kg: num(e.target.value) })} /></Field>
       </div>
@@ -171,7 +220,7 @@ export function HealthFields({ d, set }: P) {
 export function validate(step: string, d: Draft): string {
   switch (step) {
     case "about": return !d.name?.trim() ? "Enter your name." : !d.age || d.age < 13 || d.age > 100 ? "Age must be between 13 and 100." : !d.gender ? "Choose an option." : "";
-    case "body": return !d.height_cm || d.height_cm < 100 || d.height_cm > 250 ? "Height must be 100–250 cm." : !d.weight_kg || d.weight_kg < 30 || d.weight_kg > 300 ? "Weight must be 30–300 kg." : d.target_weight_kg && (d.target_weight_kg < 30 || d.target_weight_kg > 300) ? "Target must be 30–300 kg." : "";
+    case "body": return !d.height_cm || d.height_cm < 100 || d.height_cm > 250 ? "Enter a height between 3′3″ and 8′2″ (100–250 cm)." : !d.weight_kg || d.weight_kg < 30 || d.weight_kg > 300 ? "Weight must be 30–300 kg." : d.target_weight_kg && (d.target_weight_kg < 30 || d.target_weight_kg > 300) ? "Target must be 30–300 kg." : "";
     case "goal": return d.goal ? "" : "Pick a goal.";
     case "level": return d.level ? "" : "Pick your experience level.";
     case "place": return d.place ? "" : "Pick where you train.";

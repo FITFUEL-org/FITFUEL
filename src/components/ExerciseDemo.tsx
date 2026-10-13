@@ -23,9 +23,11 @@ export function ExerciseDemo({ images, name, size = "lg" }: { images: string[]; 
     <button
       type="button"
       onClick={() => setPaused((p) => !p)}
-      className={`group relative block w-full overflow-hidden rounded-2xl bg-white ${size === "sm" ? "aspect-square" : "aspect-[4/3]"}`}
+      className={`group relative block w-full overflow-hidden rounded-2xl bg-surface-2 ${size === "sm" ? "aspect-square" : "aspect-[4/3]"}`}
       aria-label={`${name} demo — ${paused ? "paused, tap to play" : "playing, tap to pause"}`}
     >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={imageUrl(images[frame])} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-xl" />
       {images.map((src, i) => (
         // eslint-disable-next-line @next/next/no-img-element -- remote CDN images in a static export
         <img

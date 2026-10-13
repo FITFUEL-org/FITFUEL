@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { ExerciseDemo } from "@/components/ExerciseDemo";
 import { Card } from "@/components/ui";
 import { getAllExercises, getExercise, similar } from "@/lib/exercises.server";
-import { imageUrl, PLACE_LABEL, title, EQUIPMENT_LABEL } from "@/lib/exercises";
+import { PLACE_LABEL, title, EQUIPMENT_LABEL } from "@/lib/exercises";
 
 export const dynamicParams = false;
 
@@ -68,8 +69,7 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {more.map((x) => (
               <Link key={x.id} href={`/exercises/${x.id}/`} className="group overflow-hidden rounded-2xl border border-line bg-surface hover:border-accent">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl(x.images[0])} alt="" loading="lazy" className="aspect-square w-full bg-white object-cover" />
+                <ExerciseThumb src={x.images[0]} hoverSrc={x.images[1]} className="aspect-square" />
                 <p className="p-2 text-sm font-semibold group-hover:text-accent">{x.name}</p>
               </Link>
             ))}

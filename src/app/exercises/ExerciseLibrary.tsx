@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Alert, Chip, Spinner, inputCls } from "@/components/ui";
-import { EQUIPMENT_LABEL, MUSCLES, PLACE_LABEL, imageUrl, loadExercises, title, type Exercise, type Place } from "@/lib/exercises";
+import { EQUIPMENT_LABEL, MUSCLES, PLACE_LABEL, loadExercises, title, type Exercise, type Place } from "@/lib/exercises";
 
 const PAGE = 36;
 
@@ -75,14 +76,7 @@ export function ExerciseLibrary() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {list.slice(0, shown).map((e) => (
           <Link key={e.id} href={`/exercises/${e.id}/`} className="group overflow-hidden rounded-2xl border border-line bg-surface transition hover:-translate-y-0.5 hover:border-accent">
-            <div className="relative aspect-[4/3] bg-white">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imageUrl(e.images[0])} alt="" loading="lazy" className="h-full w-full object-cover transition group-hover:opacity-0" />
-              {e.images[1] && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={imageUrl(e.images[1])} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-0 transition group-hover:opacity-100" />
-              )}
-            </div>
+            <ExerciseThumb src={e.images[0]} hoverSrc={e.images[1]} />
             <div className="p-3">
               <p className="font-semibold leading-tight group-hover:text-accent">{e.name}</p>
               <p className="mt-1 text-xs text-muted">{e.primary.map(title).join(", ")} · {EQUIPMENT_LABEL[e.equipment] ?? title(e.equipment)}</p>

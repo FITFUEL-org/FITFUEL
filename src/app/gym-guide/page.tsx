@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui";
 import { machineGroups } from "@/lib/exercises.server";
-import { imageUrl, title } from "@/lib/exercises";
+import { title } from "@/lib/exercises";
 
 export const metadata = { title: "Gym machine guide", description: "What to do on every gym machine, with demos." };
 
@@ -26,8 +27,7 @@ export default function GymGuidePage() {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {g.items.map((e) => (
                 <Link key={e.id} href={`/exercises/${e.id}/`} className="group overflow-hidden rounded-2xl border border-line bg-surface hover:border-accent">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageUrl(e.images[0])} alt="" loading="lazy" className="aspect-[4/3] w-full bg-white object-cover" />
+                  <ExerciseThumb src={e.images[0]} hoverSrc={e.images[1]} />
                   <div className="p-3">
                     <p className="font-semibold leading-tight group-hover:text-accent">{e.name}</p>
                     <p className="mt-1 text-xs text-muted">{e.primary.map(title).join(", ")}</p>

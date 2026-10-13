@@ -11,7 +11,6 @@ import { Alert, Button, Field, inputCls } from "@/components/ui";
 export default function SignupPage() {
   const router = useRouter();
   const { ready, user } = useAuth();
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -34,7 +33,7 @@ export default function SignupPage() {
     const { data, error } = await supabase.auth.signUp({
       email: mail,
       password,
-      options: { data: { name: name.trim() }, emailRedirectTo: `${location.origin}/auth/confirm/` },
+      options: { emailRedirectTo: `${location.origin}/auth/confirm/` },
     });
     setBusy(false);
     if (error) return setError(friendlyError(error));
@@ -58,9 +57,6 @@ export default function SignupPage() {
       footer={<>Already have an account? <Link href="/login/" className="font-semibold text-accent">Log in</Link></>}>
       <form onSubmit={submit} className="space-y-4" noValidate>
         {error && <Alert>{error}</Alert>}
-        <Field label="Your name">
-          <input className={inputCls} autoComplete="given-name" maxLength={80} value={name} onChange={(e) => setName(e.target.value)} />
-        </Field>
         <Field label="Email">
           <input className={inputCls} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>

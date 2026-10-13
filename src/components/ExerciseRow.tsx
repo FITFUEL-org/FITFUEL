@@ -1,18 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { imageUrl, title, type Exercise } from "@/lib/exercises";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { title, type Exercise } from "@/lib/exercises";
 import type { PlannedExercise } from "@/lib/planner";
 
 /** Compact exercise line: thumbnail, name, target muscles and the sets × reps prescription. */
 export function ExerciseRow({ ex, p, index, action }: { ex?: Exercise; p: PlannedExercise; index: number; action?: React.ReactNode }) {
   return (
     <li className="flex items-center gap-3 rounded-2xl border border-line bg-bg/60 p-2.5">
-      <Link href={`/exercises/${p.id}/`} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-white">
-        {ex?.images[0] && (
-          // eslint-disable-next-line @next/next/no-img-element -- remote CDN image in a static export
-          <img src={imageUrl(ex.images[0])} alt="" loading="lazy" className="h-full w-full object-cover" />
-        )}
+      <Link href={`/exercises/${p.id}/`} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl">
+        <ExerciseThumb src={ex?.images[0]} className="h-full w-full" />
         <span className="absolute left-1 top-1 rounded bg-black/70 px-1.5 text-[10px] font-bold text-white">{index + 1}</span>
       </Link>
       <div className="min-w-0 flex-1">

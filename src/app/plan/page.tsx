@@ -1,12 +1,13 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { ExerciseRow } from "@/components/ExerciseRow";
 import { Alert, Button, Card, LinkButton, PageHeader, Spinner } from "@/components/ui";
 import { usePlan } from "@/lib/usePlan";
-import { imageUrl, PLACE_LABEL, title, type Place } from "@/lib/exercises";
+import { PLACE_LABEL, title, type Place } from "@/lib/exercises";
 import { alternatives, buildDay, generatePlan, prescription, todayKey, DAY_LABEL, SPLIT_LABEL, WEEK, type PlanDay, type PlannedExercise } from "@/lib/planner";
 
 function PlanView() {
@@ -114,8 +115,7 @@ function SwapSheet({ options, current, onPick, onClose }: { options: ReturnType<
             {options.map((e) => (
               <li key={e.id}>
                 <button type="button" onClick={() => onPick(e.id)} className="flex w-full items-center gap-3 rounded-2xl border border-line p-2 text-left hover:border-accent">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageUrl(e.images[0])} alt="" loading="lazy" className="h-14 w-14 rounded-xl bg-white object-cover" />
+                  <ExerciseThumb src={e.images[0]} className="h-14 w-14 shrink-0 rounded-xl" />
                   <span className="min-w-0">
                     <span className="block truncate font-semibold">{e.name}</span>
                     <span className="block text-xs text-muted">{title(e.equipment)} · {title(e.level)}</span>
