@@ -118,3 +118,11 @@ body{background:radial-gradient(900px 420px at 88% -6%,color-mix(in srgb,var(--a
 .bc i.s{background:linear-gradient(#a98bff,#5b4bd6)}.bc i.s.ok{background:linear-gradient(#7be0c3,#14a98a)}.pm{align-items:center}
 .lg{display:inline-flex;align-items:center;gap:10px;line-height:1}.lg svg{flex:none;filter:drop-shadow(0 6px 14px rgba(255,90,0,.55))}.lg b{font:800 1em Unbounded,sans-serif;letter-spacing:-.04em;color:#fff;position:relative;display:inline-block;transform:skewX(-8deg);padding-bottom:5px}.lg b:after{content:"";position:absolute;left:0;right:12%;bottom:0;height:3px;border-radius:3px;background:linear-gradient(90deg,#ffd23f,#ff4d00,transparent)}.lg b i{font-style:normal;background:linear-gradient(90deg,#ffd23f,#ff6a00);-webkit-background-clip:text;background-clip:text;color:transparent}.bt .lgw{margin-bottom:10px}.bt .lgw .lg{font-size:36px;gap:12px}.bt .lgw.sm .lg{font-size:17px}.bt .lgw .lg svg{width:1.7em;height:1.7em}
 .pl3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 4px}.pl3 button{display:grid;gap:3px;justify-items:center;padding:14px 6px;border-radius:16px;background:var(--card);color:var(--ink);border:2px solid transparent;font-size:14px}.pl3 button span{font-size:26px}.pl3 button[aria-pressed=true]{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 22%,var(--card))}
+/* Sign-in screen */
+#auth{max-width:560px;margin:auto;min-height:100svh;padding:12px 18px 40px}
+#auth .seg{margin:16px 0 4px}
+#auth form{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+#auth form h2{margin:4px 0 0}#auth form p{margin:0}
+#auth form .field input{width:100%}
+#auth form[aria-busy=true]{opacity:.7}
+#auth .guard{margin:0}

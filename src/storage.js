@@ -6,9 +6,14 @@ export const KEY = "fitfuel.v2";
 // Write the profile; throws if storage is unavailable or full.
 export const persist = () => localStorage.setItem(KEY, JSON.stringify(U));
 
+// Optional listener run after every save() (used to sync the profile to Supabase).
+let afterSave = null;
+export const onSave = (fn) => { afterSave = fn; };
+
 // Write the profile, ignoring storage errors.
 export const save = () => {
   try { persist(); } catch (x) {}
+  if (afterSave) { try { afterSave(); } catch (x) {} }
 };
 
 // Load the saved profile into U (empty object if missing or invalid).

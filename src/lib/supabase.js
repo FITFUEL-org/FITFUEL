@@ -4,7 +4,21 @@ const url = import.meta.env.VITE_SUPABASE_URL;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 /** Null when env vars are missing, so the app keeps working offline/local-only. */
-export const supabase = url && anonKey ? createClient(url, anonKey) : null;
+export const supabase = url && anonKey
+  ? createClient(url, anonKey, {
+      auth: {
+        // Keep the session (access + refresh token) in localStorage so users stay signed in across reloads.
+        persistSession: true,
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        storageKey: 'fitfuel-auth',
+        // Refresh the access token in the background before it expires.
+        autoRefreshToken: true,
+        // Pick up the session from email confirmation / magic-link redirects.
+        detectSessionInUrl: true,
+        flowType: 'pkce',
+      },
+    })
+  : null;
 export const isSupabaseEnabled = supabase !== null;
 
 const OFFLINE = { data: null, error: new Error('Supabase is not configured') };
@@ -112,4 +126,38 @@ export async function listWeightLogs(limit = 365) {
     .order('logged_on', { ascending: true })
     .limit(limit);
   return { data, error, asU: (data || []).map((r) => [r.logged_on, Number(r.weight_kg)]) };
+}
+
+// ---- Auth wrappers (thin; UI lives in src/ui/auth.js) ----
+
+export async function signUpWithPassword(email, password) {
+  if (!supabase) return OFFLINE;
+  return supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
+}
+
+export async function signInWithPassword(email, password) {
+  if (!supabase) return OFFLINE;
+  return supabase.auth.signInWithPassword({ email, password });
+}
+
+export async function verifyEmailOtp(email, token) {
+  if (!supabase) return OFFLINE;
+  return supabase.auth.verifyOtp({ email, token, type: 'email' });
+}
+
+export async function sendPasswordReset(email) {
+  if (!supabase) return OFFLINE;
+  return supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+}
+
+export async function updatePassword(password) {
+  if (!supabase) return OFFLINE;
+  return supabase.auth.updateUser({ password });
+}
+
+/** Subscribe to auth events. Returns an unsubscribe function. */
+export function onAuthChange(cb) {
+  if (!supabase) return () => {};
+  const { data } = supabase.auth.onAuthStateChange(cb);
+  return () => data.subscription.unsubscribe();
 }
