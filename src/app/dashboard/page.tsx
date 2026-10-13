@@ -10,6 +10,7 @@ import { usePlan } from "@/lib/usePlan";
 import { listSessions, type Session } from "@/lib/data";
 import { DAY_LABEL, WEEK, todayKey, SPLIT_LABEL, type DayKey } from "@/lib/planner";
 import { title } from "@/lib/exercises";
+import { targets } from "@/lib/diet";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -51,6 +52,7 @@ function Dashboard() {
   const doneDates = new Set(sessions.map((s) => s.performed_on));
   const doneThisWeek = plan.days.filter((d) => doneDates.has(week[d.key])).length;
   const next = plan.days.find((d) => WEEK.indexOf(d.key) > WEEK.indexOf(tk)) ?? plan.days[0];
+  const nut = targets({ gender: profile.gender, age: profile.age, height_cm: profile.height_cm, weight_kg: profile.weight_kg, goal: profile.goal, level: profile.level, trainingDays: profile.training_days?.length ?? 3 });
   const bmi = profile.height_cm && profile.weight_kg ? profile.weight_kg / (profile.height_cm / 100) ** 2 : null;
   const volume = sessions.filter((s) => s.performed_on >= week.mon)
     .reduce((t, s) => t + s.exercises.reduce((a, e) => a + e.sets.reduce((b, x) => b + (x.done && x.kg && x.reps ? x.kg * x.reps : 0), 0), 0), 0);
@@ -103,9 +105,12 @@ function Dashboard() {
             </div>
             <LinkButton href={`/workout/${tk}/`}>{doneDates.has(week[tk]) ? "Train again" : "Start workout"}</LinkButton>
           </div>
-          <ol className="space-y-2">
-            {today.exercises.map((p, i) => <ExerciseRow key={p.id} ex={byId.get(p.id)} p={p} index={i} />)}
+          <ol className="grid gap-2 lg:grid-cols-3">
+            {today.exercises.slice(0, 3).map((p, i) => <ExerciseRow key={p.id} ex={byId.get(p.id)} p={p} index={i} />)}
           </ol>
+          {today.exercises.length > 3 && (
+            <Link href="/plan/" className="mt-3 inline-block text-sm font-semibold text-accent">+{today.exercises.length - 3} more exercises →</Link>
+          )}
         </Card>
       ) : (
         <Card>
@@ -120,13 +125,21 @@ function Dashboard() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <h3 className="font-display text-xl uppercase">Muscle-building tips</h3>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted">
-            <li>Add a little weight or one more rep each week (progressive overload).</li>
-            <li>Eat about 1.6–2.2 g protein per kg of body weight daily.</li>
-            <li>Sleep 7–9 hours — that&apos;s when muscle repairs.</li>
-            <li>Leave 1–2 reps in the tank on most sets; perfect form first.</li>
-          </ul>
+          <h3 className="font-display text-xl uppercase">Today&apos;s nutrition</h3>
+          {nut && !profile.has_health_condition ? (
+            <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+              {[["Calories", `${nut.kcal}`, "kcal"], ["Protein", `${nut.protein}g`, "a day"], ["Water", `${nut.waterL} L`, "a day"]].map(([l, v, u]) => (
+                <div key={l} className="rounded-xl bg-surface-2 p-3">
+                  <p className="text-xs text-muted">{l}</p>
+                  <p className="font-display text-2xl">{v}</p>
+                  <p className="text-[11px] text-muted">{u}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-muted">See meal ideas for today. Ask your doctor or dietitian for exact targets.</p>
+          )}
+          <Link href="/diet/" className="mt-3 inline-block text-sm font-semibold text-accent">See today&apos;s meals →</Link>
         </Card>
         <Card>
           <h3 className="font-display text-xl uppercase">Recent workouts</h3>

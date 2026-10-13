@@ -8,19 +8,23 @@ import { ExerciseRow } from "@/components/ExerciseRow";
 import { Alert, Button, Card, LinkButton, PageHeader, Spinner } from "@/components/ui";
 import { usePlan } from "@/lib/usePlan";
 import { PLACE_LABEL, title, type Place } from "@/lib/exercises";
-import { alternatives, buildDay, generatePlan, prescription, todayKey, DAY_LABEL, SPLIT_LABEL, WEEK, type PlanDay, type PlannedExercise } from "@/lib/planner";
+import { alternatives, buildDay, generatePlan, prescription, todayKey, DAY_LABEL, SPLIT_LABEL, WEEK, type DayKey, type DayType, type PlanDay, type PlannedExercise } from "@/lib/planner";
+import { DayTabs } from "@/components/DayTabs";
+
+const SHORT: Partial<Record<DayType, string>> = { push: "Push", pull: "Pull", legs: "Legs", upper: "Upper", lower: "Lower", full_a: "Full", full_b: "Full", full_c: "Full", chest: "Chest", back: "Back", shoulders: "Delts", arms: "Arms", conditioning: "Cardio" };
 
 function PlanView() {
   const { all, plan, byId, error, update, input } = usePlan();
   const params = useSearchParams();
   const [swap, setSwap] = useState<{ day: PlanDay; ex: PlannedExercise } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [selected, setSelected] = useState<DayKey>(todayKey());
 
   if (error) return <Alert>{error}</Alert>;
   if (!all || !plan || !input) return <Spinner label="Building your plan" />;
 
   const today = todayKey();
-  const restDays = WEEK.filter((k) => !plan.days.some((d) => d.key === k));
+  const current = plan.days.find((d) => d.key === selected);
 
   const setDay = (day: PlanDay) => update({ ...plan, days: plan.days.map((d) => (d.key === day.key ? day : d)) });
 
@@ -34,48 +38,52 @@ function PlanView() {
   return (
     <>
       <PageHeader kicker={SPLIT_LABEL[plan.split]} title="Your weekly plan">
-        {plan.days.length} training days · tap any exercise for the demo, or swap it for another.
+        {plan.days.length} training days a week. Pick a day to see its exercises — tap one for the demo, or swap it.
       </PageHeader>
-      {params.get("new") && <div className="mb-6"><Alert kind="success">Your plan is ready! Start with today&apos;s workout or browse the week below.</Alert></div>}
+      {params.get("new") && <div className="mb-6"><Alert kind="success">Your plan is ready! Start with today&apos;s workout or pick another day below.</Alert></div>}
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        {plan.days.map((day) => (
-          <Card key={day.key} className={day.key === today ? "ring-2 ring-accent" : ""}>
+      <DayTabs value={selected} onChange={setSelected} days={WEEK}
+        mark={(k) => { const d = plan.days.find((x) => x.key === k); return d ? <span className="text-[11px] font-semibold">{SHORT[d.type] ?? "Train"}</span> : "😴"; }} />
+
+      <div className="mt-4">
+        {current ? (
+          <Card className={current.key === today ? "border-accent/60" : ""}>
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">{DAY_LABEL[day.key]}{day.key === today && " · Today"}</p>
-                <h2 className="font-display text-2xl uppercase tracking-wide">{day.title}</h2>
-                <p className="text-sm text-muted">{day.focus.map(title).join(" · ")}</p>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">{DAY_LABEL[current.key]}{current.key === today && " · Today"}</p>
+                <h2 className="font-display text-2xl uppercase tracking-wide">{current.title}</h2>
+                <p className="text-sm text-muted">{current.exercises.length} exercises · {current.focus.map(title).join(" · ")}</p>
               </div>
               <label className="text-sm">
-                <span className="sr-only">Where on {DAY_LABEL[day.key]}</span>
+                <span className="sr-only">Where on {DAY_LABEL[current.key]}</span>
                 <select
                   className="rounded-lg border border-line bg-bg px-3 py-2 text-sm"
-                  value={day.place}
-                  onChange={(e) => setDay(buildDay(all, input, day.key, day.type, e.target.value as Place))}
+                  value={current.place}
+                  onChange={(e) => setDay(buildDay(all, input, current.key, current.type, e.target.value as Place))}
                 >
                   {(["gym", "home", "outdoor"] as Place[]).map((p) => <option key={p} value={p}>{PLACE_LABEL[p]}</option>)}
                 </select>
               </label>
             </div>
-            <ol className="space-y-2">
-              {day.exercises.map((p, i) => (
+            <ol className="grid gap-2 lg:grid-cols-2">
+              {current.exercises.map((p, i) => (
                 <ExerciseRow key={p.id} ex={byId.get(p.id)} p={p} index={i}
                   action={p.muscle !== "cardio" && (
-                    <button type="button" onClick={() => setSwap({ day, ex: p })} className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-muted hover:border-accent hover:text-accent">
+                    <button type="button" onClick={() => setSwap({ day: current, ex: p })} className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-muted hover:border-accent hover:text-accent">
                       Swap
                     </button>
                   )} />
               ))}
             </ol>
-            <LinkButton href={`/workout/${day.key}/`} className="mt-4 w-full">Start {DAY_LABEL[day.key]}&apos;s workout</LinkButton>
+            <LinkButton href={`/workout/${current.key}/`} className="mt-4 w-full sm:w-auto">Start {DAY_LABEL[current.key]}&apos;s workout</LinkButton>
           </Card>
-        ))}
+        ) : (
+          <Card className="text-center">
+            <p className="font-display text-2xl uppercase">{DAY_LABEL[selected]} — rest day</p>
+            <p className="mt-2 text-muted">Walk, stretch and sleep 7–9 hours. Muscles grow while you recover.</p>
+          </Card>
+        )}
       </div>
-
-      {restDays.length > 0 && (
-        <p className="mt-6 text-sm text-muted">Rest days: {restDays.map((k) => DAY_LABEL[k]).join(", ")}. Walk, stretch, sleep 7–9 hours — muscles grow while you recover.</p>
-      )}
 
       <div className="mt-8 flex flex-wrap gap-3">
         <Button variant="outline" onClick={regenerate} busy={busy}>Generate a fresh plan</Button>

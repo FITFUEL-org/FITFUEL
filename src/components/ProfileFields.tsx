@@ -4,6 +4,7 @@ import type { Profile } from "@/lib/data";
 import type { DayKey, Experience, Goal, Limitation, Split } from "@/lib/planner";
 import { WEEK, DAY_LABEL } from "@/lib/planner";
 import { useState } from "react";
+import { ALLERGY_LABEL, type Allergy, type DietType } from "@/lib/diet";
 import { Chip, Field, inputCls } from "./ui";
 
 export type Draft = Partial<Profile>;
@@ -224,7 +225,34 @@ export function validate(step: string, d: Draft): string {
     case "goal": return d.goal ? "" : "Pick a goal.";
     case "level": return d.level ? "" : "Pick your experience level.";
     case "place": return d.place ? "" : "Pick where you train.";
+    case "diet": return d.diet ? "" : "Pick your food preference.";
     case "schedule": return !d.training_days?.length ? "Pick at least one training day." : !d.workout_minutes ? "Pick a session length." : "";
     default: return "";
   }
+}
+
+export function DietFields({ d, set }: P) {
+  const al = (d.allergies ?? []) as Allergy[];
+  const toggle = (k: Allergy) => set({ allergies: al.includes(k) ? al.filter((x) => x !== k) : [...al, k] });
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-3 sm:grid-cols-2">
+        {([["veg", "🥗", "Vegetarian", "Dal, paneer, curd, sprouts"], ["egg", "🥚", "Eggetarian", "Vegetarian + eggs"], ["nv", "🍗", "Non-vegetarian", "Chicken, fish, eggs"], ["vegan", "🌱", "Vegan", "No dairy or eggs — tofu, soya, dal"]] as [DietType, string, string, string][]).map(([k, i, t, desc]) => (
+          <Option key={k} icon={i} title={t} desc={desc} active={d.diet === k} onClick={() => set({ diet: k })} />
+        ))}
+      </div>
+      <div>
+        <p className="mb-2 text-sm font-medium">Meals per day</p>
+        <div className="flex flex-wrap gap-2">
+          {[3, 4, 5].map((n) => <Chip key={n} active={(d.meals_per_day ?? 4) === n} onClick={() => set({ meals_per_day: n })}>{n} meals</Chip>)}
+        </div>
+      </div>
+      <div>
+        <p className="mb-2 text-sm font-medium">Allergies or foods you avoid</p>
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(ALLERGY_LABEL) as Allergy[]).map((k) => <Chip key={k} active={al.includes(k)} onClick={() => toggle(k)}>{ALLERGY_LABEL[k]}</Chip>)}
+        </div>
+      </div>
+    </div>
+  );
 }

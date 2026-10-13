@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
 import { Alert, Button, Card, PageHeader } from "@/components/ui";
-import { AboutFields, BodyFields, GoalFields, LevelFields, PlaceFields, ScheduleFields, HealthFields, validate, type Draft } from "@/components/ProfileFields";
+import { AboutFields, BodyFields, GoalFields, LevelFields, PlaceFields, ScheduleFields, DietFields, HealthFields, validate, type Draft } from "@/components/ProfileFields";
 import { saveProfile, savePlan, planInput } from "@/lib/data";
 import { loadExercises } from "@/lib/exercises";
 import { generatePlan } from "@/lib/planner";
@@ -14,7 +14,7 @@ import { supabase, friendlyError } from "@/lib/supabase";
 const SECTIONS = [
   ["about", "About you", AboutFields], ["body", "Body", BodyFields], ["goal", "Goal", GoalFields],
   ["level", "Experience", LevelFields], ["place", "Where you train", PlaceFields],
-  ["schedule", "Schedule & split", ScheduleFields], ["health", "Health", HealthFields],
+  ["schedule", "Schedule & split", ScheduleFields], ["diet", "Diet", DietFields], ["health", "Health", HealthFields],
 ] as const;
 
 // Fields that change the generated plan.

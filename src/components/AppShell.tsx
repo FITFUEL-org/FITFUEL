@@ -10,10 +10,11 @@ import { Spinner } from "./ui";
 const NAV = [
   { href: "/dashboard/", label: "Today", icon: "M3 12l9-8 9 8M5 10v10h14V10" },
   { href: "/plan/", label: "Plan", icon: "M4 5h16M4 12h16M4 19h10" },
+  { href: "/diet/", label: "Diet", icon: "M7 3v8a3 3 0 006 0V3M10 3v18M17 3c-1.7 0-3 2-3 5s1.3 4 3 4v9" },
   { href: "/exercises/", label: "Exercises", icon: "M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12" },
   { href: "/progress/", label: "Progress", icon: "M4 19V9M10 19V5M16 19v-7M22 19H2" },
-  { href: "/profile/", label: "Profile", icon: "M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0" },
 ];
+const PROFILE_ICON = "M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0";
 
 function Icon({ d }: { d: string }) {
   return (
@@ -59,7 +60,13 @@ export function AppShell({ children, needsOnboarding = true, isPublic = false }:
               </Link>
             ))}
             <Link href="/gym-guide/" className={`rounded-lg px-3 py-2 text-sm font-semibold ${path.startsWith("/gym-guide") ? "bg-accent/15 text-accent" : "text-muted hover:text-fg"}`}>Gym guide</Link>
+            <Link href="/profile/" className={`rounded-lg px-3 py-2 text-sm font-semibold ${path.startsWith("/profile") ? "bg-accent/15 text-accent" : "text-muted hover:text-fg"}`}>Profile</Link>
           </nav>
+          )}
+          {!guest && (
+            <Link href="/profile/" aria-label="Profile" className={`rounded-full border p-2 md:hidden ${path.startsWith("/profile") ? "border-accent text-accent" : "border-line text-muted"}`}>
+              <Icon d={PROFILE_ICON} />
+            </Link>
           )}
         </div>
       </header>

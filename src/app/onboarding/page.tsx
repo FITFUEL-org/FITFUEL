@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { Logo } from "@/components/Logo";
 import { Alert, Button, Spinner } from "@/components/ui";
-import { AboutFields, BodyFields, GoalFields, LevelFields, PlaceFields, ScheduleFields, HealthFields, validate, type Draft } from "@/components/ProfileFields";
+import { AboutFields, BodyFields, GoalFields, LevelFields, PlaceFields, ScheduleFields, DietFields, HealthFields, validate, type Draft } from "@/components/ProfileFields";
 import { saveProfile, savePlan, planInput, logWeight } from "@/lib/data";
 import { loadExercises } from "@/lib/exercises";
 import { generatePlan } from "@/lib/planner";
@@ -18,6 +18,7 @@ const STEPS = [
   { k: "level", t: "Training experience", s: "We'll match exercise difficulty.", C: LevelFields },
   { k: "place", t: "Where will you train?", s: "You can change this for any day later.", C: PlaceFields },
   { k: "schedule", t: "Your weekly schedule", s: "We'll build a split around your days.", C: ScheduleFields },
+  { k: "diet", t: "Your food preference", s: "We'll build an Indian meal plan around it.", C: DietFields },
   { k: "health", t: "Health & safety", s: "Last step.", C: HealthFields },
 ] as const;
 
@@ -42,7 +43,7 @@ function Wizard() {
   // Start from whatever is already saved (e.g. name from sign-up).
   const [d, setD] = useState<Draft>(() => ({
     name: (user?.user_metadata?.name as string) || "",
-    training_days: ["mon", "wed", "fri"], workout_minutes: 45, preferred_split: "auto", equipment: [], limitations: [],
+    training_days: ["mon", "wed", "fri"], workout_minutes: 45, preferred_split: "auto", equipment: [], limitations: [], meals_per_day: 4, allergies: [],
     ...Object.fromEntries(Object.entries(profile ?? {}).filter(([, v]) => v !== null && !(Array.isArray(v) && !v.length))),
   }));
 
@@ -61,6 +62,7 @@ function Wizard() {
         goal: d.goal, level: d.level, place: d.place, equipment: d.equipment ?? [], training_days: d.training_days,
         workout_minutes: d.workout_minutes, limitations: d.limitations ?? [], preferred_split: d.preferred_split ?? "auto",
         has_health_condition: !!d.has_health_condition, onboarded: true,
+        diet: d.diet, meals_per_day: d.meals_per_day ?? 4, allergies: d.allergies ?? [],
       });
       const plan = generatePlan(await loadExercises(), planInput(p));
       await savePlan(user!.id, plan);
