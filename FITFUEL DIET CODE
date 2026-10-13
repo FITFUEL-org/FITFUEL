@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diet Plan Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f7f2;--ink:#17302b;--mute:#5b6f68;--card:#fff;--line:#d6e0d8;--acc:#1f5c4d;--pop:#c8e64c;--onpop:#17302b}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#10201c;--ink:#e8f0ea;--mute:#9fb3aa;--card:#172a25;--line:#2b423b;--acc:#7fd3b5;--pop:#c8e64c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 "Source Serif 4",Georgia,serif}
+.wrap{max-width:860px;margin:0 auto;padding:32px 18px 60px}
+h1{font:700 clamp(30px,6vw,48px)/1.1 "Bricolage Grotesque",system-ui,sans-serif;margin:0 0 8px;letter-spacing:-.02em}
+.lead{color:var(--mute);margin:0 0 26px;max-width:56ch}
+fieldset{border:0;padding:0;margin:0 0 18px}
+legend{font:700 15px "Bricolage Grotesque",system-ui,sans-serif;margin-bottom:8px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts input{position:absolute;opacity:0}
+.opts label{padding:9px 16px;border:1.5px solid var(--line);border-radius:999px;background:var(--card);cursor:pointer;font:500 15px "Bricolage Grotesque",system-ui,sans-serif;transition:background .15s,border-color .15s}
+.opts input:checked+label{background:var(--acc);border-color:var(--acc);color:#fff}
+.opts input:focus-visible+label{outline:3px solid var(--pop);outline-offset:2px}
+#out{margin-top:30px}
+.sum{background:var(--acc);color:#fff;border-radius:14px;padding:20px 22px;margin-bottom:18px}
+.sum h2{font:700 24px "Bricolage Grotesque",system-ui,sans-serif;margin:0 0 6px}
+.sum p{margin:0;opacity:.92}
+.sum b{background:var(--pop);color:var(--onpop);padding:1px 8px;border-radius:6px;font-weight:600}
+.meal{display:grid;grid-template-columns:130px 1fr;gap:6px 18px;padding:14px 0;border-bottom:1px solid var(--line)}
+.meal h3{margin:0;font:700 16px "Bricolage Grotesque",system-ui,sans-serif}
+.meal span{display:block;color:var(--mute);font-size:14px;font-weight:400}
+.meal p{margin:0}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-top:18px}
+.box h3{margin:0 0 8px;font:700 17px "Bricolage Grotesque",system-ui,sans-serif}
+.box ul{margin:0;padding-left:20px}
+.note{font-size:14px;color:var(--mute);margin-top:22px}
+.it{display:grid;grid-template-columns:1fr 78px 58px;gap:8px;padding:3px 0;font-size:15.5px}
+.it.h{font:700 12px "Bricolage Grotesque",sans-serif;color:var(--mute)}
+.it span:nth-child(n+2){text-align:right}
+.sub{border-top:1px dashed var(--line);margin-top:4px;padding-top:4px;font-weight:600}
+.tot{display:flex;justify-content:space-between;align-items:center;background:var(--pop);color:var(--onpop);border-radius:12px;padding:14px 18px;margin-top:18px;font:700 18px "Bricolage Grotesque",sans-serif}
+.nums{display:flex;gap:12px;flex-wrap:wrap}
+.nums label{font:500 14px "Bricolage Grotesque",sans-serif;display:grid;gap:4px}
+.nums input{width:150px;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:16px "Source Serif 4",serif}
+.nums input:focus-visible{outline:3px solid var(--pop)}
+.days{display:flex;flex-wrap:wrap;gap:6px;margin:22px 0 0}
+.days button{padding:8px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:500 14px "Bricolage Grotesque",sans-serif;cursor:pointer}
+.days button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.days button:focus-visible{outline:3px solid var(--pop)}
+.warn{border-color:#d9a441;background:rgba(217,164,65,.12)}
+.stats{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:12px}
+.stats div b{display:block;font:700 20px "Bricolage Grotesque",sans-serif}
+@media(max-width:560px){.meal{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<h1>Find your diet plan</h1>
+<p class="lead">Pick your goal, budget and age group. Your plan appears instantly.</p>
+
+<fieldset><legend>Goal</legend><div class="opts" id="goal"></div></fieldset>
+<fieldset><legend>Gender</legend><div class="opts" id="gender"></div></fieldset>
+<fieldset><legend>Age group</legend><div class="opts" id="age"></div></fieldset>
+<fieldset><legend>Height and weight</legend><div class="nums"><label>Height (cm)<input id="ht" type="number" min="120" max="220" placeholder="e.g. 170"></label><label>Weight (kg)<input id="wt" type="number" min="30" max="200" placeholder="e.g. 68"></label></div></fieldset>
+<fieldset><legend>Diet type</legend><div class="opts" id="diet"></div></fieldset>
+<fieldset><legend>Budget</legend><div class="opts" id="budget"></div></fieldset>
+
+<section id="out" aria-live="polite"></section>
+<p class="note">General wellness guidance, not medical advice. If you have a health condition, take medicines, are pregnant, or have a history of disordered eating, check with a doctor or registered dietitian first.</p>
+</main>
+
+<script>
+const G={
+ lose:{n:"Lose weight",m:.8,t:"Aim for slow, steady loss of roughly 0.25–0.5 kg per week. Portions are set from your body size and a modest calorie deficit, with protein kept high so you stay full."},
+ gain:{n:"Gain weight",m:1.25,t:"Aim for a lean gain of roughly 0.25–0.5 kg per week. Portions are set from your body size and a modest calorie surplus. Pair this with strength training."},
+ maintain:{n:"Maintain weight",m:1,t:"Eat at your maintenance level to keep your weight stable. Portions are set from your body size."}
+};
+const D={veg:{n:"Vegetarian"},nv:{n:"Non-vegetarian"}};
+
+// Item format: ["Name", quantity, "unit", price in rupees for that quantity]
+const B={
+ low:{n:"Low budget",lab:"Low · ₹100–150/day",tag:"About ₹100–150 a day",
+  veg:{b:[["Oats",50,"g",8],["Peanuts",20,"g",3],["Milk",250,"ml",15],["Banana",1,"pc",6]],
+   l:[["Toor dal (dry)",60,"g",9],["Rice",80,"g",5],["Atta for 2 rotis",60,"g",3],["Seasonal vegetables",150,"g",8],["Curd",100,"g",8]],
+   s:[["Roasted chana",40,"g",5],["Seasonal fruit",100,"g",10]],
+   d:[["Atta for 2 rotis",60,"g",3],["Soya chunks",50,"g",10],["Seasonal vegetables",150,"g",8],["Cooking oil",15,"ml",3]],
+   w:"Swap soya chunks for rajma or chole (60 g dry, about ₹8). Swap oats for poha (60 g, about ₹4)."},
+  nv:{b:[["Poha",60,"g",4],["Eggs",2,"pc",14],["Peanuts",20,"g",3],["Banana",1,"pc",6]],
+   l:[["Chicken",100,"g",22],["Rice",80,"g",5],["Atta for 2 rotis",60,"g",3],["Seasonal vegetables",150,"g",8],["Curd",100,"g",8]],
+   s:[["Egg",1,"pc",7],["Roasted chana",30,"g",4],["Seasonal fruit",100,"g",10]],
+   d:[["Atta for 2 rotis",60,"g",3],["Toor dal (dry)",40,"g",6],["Eggs",2,"pc",14],["Seasonal vegetables",150,"g",8],["Cooking oil",15,"ml",3]],
+   w:"Swap chicken for 2 more eggs on tight days. Soya chunks (50 g, about ₹10) also work."}},
+ med:{n:"Medium budget",lab:"Medium · ₹200–300/day",tag:"About ₹200–300 a day",
+  veg:{b:[["Paneer (in paratha)",50,"g",19],["Atta for 2 parathas",60,"g",3],["Curd",100,"g",8],["Seasonal fruit",150,"g",15]],
+   l:[["Paneer",100,"g",38],["Brown rice",80,"g",8],["Toor dal (dry)",50,"g",8],["Seasonal vegetables",200,"g",12],["Salad",100,"g",5]],
+   s:[["Mixed nuts",25,"g",25],["Moong sprouts",60,"g",6],["Seasonal fruit",100,"g",10]],
+   d:[["Tofu",100,"g",35],["Millet roti flour",60,"g",4],["Seasonal vegetables",200,"g",12],["Cooking oil",15,"ml",3],["Milk",250,"ml",15]],
+   w:"Swap tofu for soya chunks (50 g, about ₹10) to save money."},
+  nv:{b:[["Eggs",3,"pc",21],["Multigrain bread",2,"slice",10],["Seasonal fruit",150,"g",15],["Milk",250,"ml",15]],
+   l:[["Chicken",150,"g",33],["Brown rice",80,"g",8],["Toor dal (dry)",50,"g",8],["Seasonal vegetables",200,"g",12],["Salad",100,"g",5]],
+   s:[["Mixed nuts",25,"g",25],["Egg",1,"pc",7],["Seasonal fruit",100,"g",10]],
+   d:[["Fish (rohu)",150,"g",38],["Millet roti flour",60,"g",4],["Seasonal vegetables",200,"g",12],["Cooking oil",15,"ml",3],["Curd",100,"g",8]],
+   w:"Swap fish for chicken or 3 eggs if fish is hard to find."}},
+ high:{n:"High budget",lab:"High · ₹500+/day",tag:"About ₹500+ a day",
+  veg:{b:[["Greek yogurt",150,"g",45],["Berries",80,"g",60],["Almonds",20,"g",20],["Chia seeds",10,"g",8]],
+   l:[["Tofu",150,"g",52],["Quinoa",70,"g",32],["Avocado",1,"pc",80],["Fresh greens",150,"g",25],["Olive oil",10,"ml",12]],
+   s:[["Whey or plant protein",1,"scoop",60],["Walnuts",20,"g",25],["Seasonal fruit",150,"g",20]],
+   d:[["Paneer",150,"g",57],["Sweet potato",150,"g",12],["Fresh greens",150,"g",25],["Olive oil",10,"ml",12]],
+   w:"Protein powder and berries are optional. Replace them with milk and seasonal fruit to cut about ₹100."},
+  nv:{b:[["Greek yogurt",150,"g",45],["Eggs",2,"pc",14],["Berries",80,"g",60],["Almonds",20,"g",20]],
+   l:[["Chicken breast",150,"g",50],["Quinoa",70,"g",32],["Avocado",1,"pc",80],["Fresh greens",150,"g",25],["Olive oil",10,"ml",12]],
+   s:[["Whey protein",1,"scoop",60],["Almonds",25,"g",25],["Seasonal fruit",150,"g",20]],
+   d:[["Salmon",150,"g",225],["Sweet potato",150,"g",12],["Fresh greens",150,"g",25],["Olive oil",10,"ml",12]],
+   w:"Salmon is the big cost. Use rohu or chicken on other days and keep salmon for twice a week."}}
+};
+
+const A={
+ teen:{n:"Teen (13–19)",tips:["Do not skip meals. Growing bodies need regular energy, calcium and iron.","Include milk, curd or paneer daily for calcium, and greens, dal or eggs for iron.","Limit soft drinks, chips and instant noodles, but avoid cutting out food groups.","Be active for at least 60 minutes a day through sport, cycling or play."],
+  adj:{lose:"For teens, the goal is healthy habits, not strict dieting. Do not count calories or cut meals. Swap junk for whole foods, move more, and talk to a doctor before aiming for weight loss.",gain:"Growth spurts need fuel. Add one extra snack and keep protein at every meal.",maintain:"Keep eating balanced meals while you grow. Your weight will naturally change with height."}},
+ adult:{n:"Adult (20–39)",tips:["Aim for 1.2–1.6 g protein per kg body weight, spread across meals.","Strength train 2–3 times a week and walk daily.","Sleep 7–9 hours. Poor sleep increases hunger and cravings.","Limit alcohol, sugary drinks and late-night eating."],adj:{}},
+ mid:{n:"Middle age (40–59)",tips:["Metabolism slows with age, so keep protein steady and portions in check.","Choose fiber-rich foods like oats, millets, pulses and vegetables to help blood sugar and cholesterol.","Cut back on salt, fried food and refined sugar to protect heart health.","Strength training helps keep muscle and bone strong. Walk 30–45 minutes daily.","Get blood sugar, BP and cholesterol checked regularly."],adj:{}},
+ senior:{n:"Senior (60+)",tips:["Protein matters more now. Include it at every meal to protect muscle.","Eat enough calcium and vitamin D (milk, curd, ragi, sunlight). Ask your doctor about supplements.","Choose softer, easy-to-digest foods if chewing is hard, such as khichdi, soups and stewed fruit.","Drink water through the day even when you do not feel thirsty.","Keep weight loss gradual and always under medical supervision."],
+  adj:{lose:"At this age, unintended muscle loss is a bigger risk than extra weight. Lose weight only if your doctor advises, and slowly.",gain:"Small frequent meals work better than large ones. Add milk, nuts and ghee to dishes.",maintain:""}}
+};
+
+// Alternate meals (shortcut format: "Name|qty|unit|price;Name|qty|unit|price")
+const P=t=>t.split(";").map(x=>{const[a,b,c,d]=x.split("|");return[a,+b,c,+d]});
+const ALT={
+ low:{veg:{b:"Besan chilla (besan)|60|g|6;Curd|150|g|12;Seasonal fruit|100|g|10",l:"Rajma|60|g|10;Rice|80|g|5;Seasonal vegetables|150|g|8;Salad|100|g|5;Curd|100|g|8",s:"Peanuts|30|g|5;Banana|1|pc|6;Milk|200|ml|12",d:"Moong dal (dry)|50|g|8;Rice|60|g|4;Seasonal vegetables|150|g|8;Curd|100|g|8;Cooking oil|10|ml|2"},
+  nv:{b:"Eggs|2|pc|14;Atta for 2 rotis|60|g|3;Banana|1|pc|6;Milk|200|ml|12",l:"Eggs|2|pc|14;Rice|80|g|5;Toor dal (dry)|50|g|8;Seasonal vegetables|150|g|8;Salad|100|g|5",s:"Chickpeas (dry, boiled)|40|g|5;Peanuts|20|g|3;Seasonal fruit|100|g|10",d:"Chicken|100|g|22;Atta for 2 rotis|60|g|3;Seasonal vegetables|150|g|8;Cooking oil|15|ml|3"}},
+ med:{veg:{b:"Oats|50|g|8;Milk|250|ml|15;Mixed nuts|15|g|15;Banana|1|pc|6",l:"Rajma|60|g|10;Brown rice|80|g|8;Paneer|50|g|19;Seasonal vegetables|200|g|12;Curd|100|g|8",s:"Greek-style curd|150|g|18;Almonds|15|g|15;Seasonal fruit|100|g|10",d:"Paneer|100|g|38;Atta for 2 rotis|60|g|3;Seasonal vegetables|200|g|12;Cooking oil|15|ml|3;Moong dal (dry)|40|g|6"},
+  nv:{b:"Oats|50|g|8;Milk|250|ml|15;Eggs|2|pc|14;Banana|1|pc|6",l:"Eggs|3|pc|21;Brown rice|80|g|8;Toor dal (dry)|50|g|8;Seasonal vegetables|200|g|12",s:"Chicken tikka bites|80|g|18;Seasonal fruit|100|g|10;Curd|100|g|8",d:"Chicken|150|g|33;Atta for 2 rotis|60|g|3;Seasonal vegetables|200|g|12;Cooking oil|15|ml|3;Curd|100|g|8"}},
+ high:{veg:{b:"Sourdough bread|2|slice|40;Avocado|1|pc|80;Paneer scramble (paneer)|80|g|30;Fresh greens|50|g|8",l:"Chickpeas (dry)|60|g|8;Quinoa|70|g|32;Paneer|100|g|38;Fresh greens|150|g|25;Olive oil|10|ml|12",s:"Greek yogurt|150|g|45;Berries|80|g|60;Almonds|20|g|20",d:"Tofu|150|g|52;Buckwheat noodles|70|g|35;Fresh greens|150|g|25;Olive oil|10|ml|12"},
+  nv:{b:"Sourdough bread|2|slice|40;Eggs|3|pc|21;Avocado|1|pc|80;Fresh greens|50|g|8",l:"Prawns|150|g|105;Brown rice|80|g|8;Fresh greens|150|g|25;Olive oil|10|ml|12",s:"Cottage cheese (paneer)|100|g|38;Walnuts|20|g|25;Berries|80|g|60",d:"Chicken breast|150|g|50;Sweet potato|150|g|12;Quinoa|50|g|23;Fresh greens|150|g|25;Olive oil|10|ml|12"}}
+};
+
+const AGE={teen:16,adult:30,mid:50,senior:68}; // mid-point ages used for calorie math
+let day=0;
+const M=[["b","Breakfast","7–9 am"],["l","Lunch","12–2 pm"],["s","Snack","4–5 pm"],["d","Dinner","7–8:30 pm"]];
+
+function radios(id,obj,def){const el=document.getElementById(id);
+ el.innerHTML=Object.keys(obj).map(k=>`<input type=radio name=${id} id=${id}-${k} value=${k} ${k===def?"checked":""}><label for=${id}-${k}>${obj[k].lab||obj[k].n}</label>`).join("");
+ el.onchange=()=>{render()}}
+radios("goal",G,"lose");radios("gender",{m:{n:"Male"},f:{n:"Female"}},"m");radios("diet",D,"veg");radios("budget",B,"low");radios("age",A,"adult");
+
+function v(n){return document.querySelector(`input[name=${n}]:checked`).value}
+
+// Scales quantity and price by the portion multiplier m
+function scale(it,m){const[n,q,u,p]=it;let nq=q*m;nq=(u=="g"||u=="ml")?Math.max(5,Math.round(nq/5)*5):Math.max(1,Math.round(nq));return[n,nq,u,Math.round(p*nq/q)]}
+
+document.getElementById("ht").oninput=document.getElementById("wt").oninput=()=>render();
+
+function render(){
+ const gk=v("goal"),ak=v("age"),sx=v("gender"),dk=v("diet"),bk=v("budget"),g=G[gk],a=A[ak],bb=B[bk],b=bb[dk],dn=D[dk].n;
+ const h=+document.getElementById("ht").value,w=+document.getElementById("wt").value;
+ const ok=h>=120&&h<=220&&w>=30&&w<=200;
+ let m=g.m,body="",warn="";
+ if(ok){
+  const bmi=w/((h/100)**2),adult=ak!="teen",cat=bmi<18.5?"Underweight":bmi<25?"Healthy range":bmi<30?"Overweight":"Obese";
+  let adj=gk=="lose"?-400:gk=="gain"?400:0;
+  if(ak=="teen")adj=gk=="lose"?0:gk=="gain"?300:0;
+  if(ak=="senior")adj=gk=="lose"?-250:gk=="gain"?300:0;
+  if(adult&&gk=="lose"&&bmi<18.5){adj=0;warn="Your BMI is in the underweight range, so losing weight is not advised. This plan keeps your calories at maintenance. Consider the Maintain or Gain goal.";}
+  if(adult&&gk=="gain"&&bmi>=30){warn="Your BMI is in the obese range. Gaining weight may not be healthy for you. Please talk to a doctor or dietitian before choosing this goal.";}
+  // Mifflin-St Jeor estimate x 1.4 (light activity)
+  const maint=(10*w+6.25*h-5*AGE[ak]+(sx=="m"?5:-161))*1.4;
+  const floor=ak=="teen"?0:(sx=="m"?1500:1200);
+  const tgt=Math.round(Math.max(floor,maint+adj)/50)*50;
+  m=Math.min(1.45,Math.max(.7,tgt/2000)); // plans are based on roughly 2,000 kcal
+  const pr=ak=="teen"?[1,1.4]:ak=="senior"?[1.2,1.5]:[1.2,1.6];
+  body=`<div class=stats><div><b>${adult?bmi.toFixed(1):"–"}</b>BMI ${adult?"("+cat+")":"(see a doctor for teen growth charts)"}</div><div><b>about ${tgt} kcal</b>daily target</div><div><b>${Math.round(w*pr[0])}–${Math.round(w*pr[1])} g</b>protein per day</div></div>`;
+ }else warn="Enter your height and weight above to get portions matched to your body. Showing standard portions for now.";
+
+ const tabs=`<div class=days role=group aria-label="Choose day">${[1,2,3,4,5,6,7].map((n,i)=>`<button type=button data-d=${i} aria-pressed=${i==day}>Day ${n}</button>`).join("")}</div>`;
+ const pick={b:day&1,l:(day>>1)&1,d:(day>>2)&1,s:(day+1)&1};
+ let total=0;
+ const meals=M.map(([k,t,hh])=>{const opt=pick[k]?P(ALT[bk][dk][k]):b[k];const its=opt.map(x=>scale(x,m));const sub=its.reduce((z,x)=>z+x[3],0);total+=sub;
+  return `<div class=meal><h3>${t}<span>${hh}</span></h3><div><div class="it h"><span>Item</span><span>Quantity</span><span>Cost</span></div>${its.map(x=>`<div class=it><span>${x[0]}</span><span>${x[1]} ${x[2]}</span><span>₹${x[3]}</span></div>`).join("")}<div class="it sub"><span>${t} total</span><span></span><span>₹${sub}</span></div></div></div>`}).join("");
+ const adj2=a.adj[gk]||"";
+ const o=document.getElementById("out");
+ o.innerHTML=`
+ <div class=sum><h2>${g.n} · ${sx=="m"?"Male":"Female"} · ${dn} · ${bb.n} · ${a.n}</h2><p><b>${bb.tag}</b></p><p style="margin-top:10px">${g.t}</p>${body}</div>
+ ${warn?`<div class="box warn"><h3>Please note</h3><p style="margin:0">${warn}</p></div>`:""}
+ ${adj2?`<div class=box><h3>For this age group</h3><p style="margin:0">${adj2}</p></div>`:""}
+ ${tabs}
+ <p class=note style="margin:10px 0 0">Meals rotate across the 7 days so you don't get bored. Repeat the week, or mix and match any meals.</p>
+ ${meals}
+ <div class=tot><span>Estimated cost for Day ${day+1}</span><span>₹${total}</span></div>
+ <div class=box><h3>Save money or swap</h3><p style="margin:0">${b.w}</p></div>
+ <div class=box><h3>Tips for ${a.n.toLowerCase()}</h3><ul>${a.tips.map(t=>`<li>${t}</li>`).join("")}<li>Drink 2–3 litres of water daily.</li></ul></div>
+ <p class=note>Prices are approximate Indian market rates and change by city and season. Calorie and protein figures are estimates for light activity. Edit the data section of this file to match your area.</p>`;
+ o.querySelectorAll(".days button").forEach(x=>x.onclick=()=>{day=+x.dataset.d;render()});
+}
+render();
+</script>
+</body>
+</html>
