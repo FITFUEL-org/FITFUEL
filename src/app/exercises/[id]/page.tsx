@@ -5,7 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { ExerciseDemo } from "@/components/ExerciseDemo";
 import { Card } from "@/components/ui";
 import { getAllExercises, getExercise, similar } from "@/lib/exercises.server";
-import { PLACE_LABEL, title, EQUIPMENT_LABEL } from "@/lib/exercises";
+import { PLACE_LABEL, title, EQUIPMENT_LABEL, regionLabel, groupOf, GROUPS } from "@/lib/exercises";
 
 export const dynamicParams = false;
 
@@ -27,7 +27,11 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
 
   return (
     <AppShell isPublic>
-      <nav className="mb-4 text-sm text-muted"><Link href="/exercises/" className="hover:text-accent">Exercises</Link> / {title(e.primary[0] ?? "")}</nav>
+      <nav className="mb-4 text-sm text-muted">
+        <Link href="/exercises/" className="hover:text-accent">Exercises</Link>
+        {groupOf(e.region) && <> / <Link href={`/exercises/?group=${groupOf(e.region)}`} className="hover:text-accent">{GROUPS.find((g) => g.key === groupOf(e.region))?.label}</Link></>}
+        {" / "}<Link href={`/exercises/?group=${groupOf(e.region)}&region=${e.region}`} className="hover:text-accent">{regionLabel(e.region)}</Link>
+      </nav>
       <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
         <div>
           <ExerciseDemo images={e.images} name={e.name} />
@@ -35,6 +39,7 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
         </div>
         <div className="space-y-5">
           <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">Targets: {regionLabel(e.region)}</p>
             <h1 className="font-display text-4xl uppercase leading-tight tracking-wide">{e.name}</h1>
             <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold uppercase">
               <span className={`rounded-full px-3 py-1 ${LEVEL_COLOR[e.level]}`}>{e.level}</span>

@@ -5,7 +5,7 @@ import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Alert, Chip, Spinner, inputCls } from "@/components/ui";
-import { EQUIPMENT_LABEL, MUSCLES, PLACE_LABEL, loadExercises, title, type Exercise, type Place } from "@/lib/exercises";
+import { EQUIPMENT_LABEL, GROUPS, PLACE_LABEL, groupOf, regionLabel, loadExercises, title, type Exercise, type Place } from "@/lib/exercises";
 
 const PAGE = 36;
 
@@ -17,16 +17,18 @@ export function ExerciseLibrary() {
   const [error, setError] = useState("");
   const [q, setQ] = useState(params.get("q") ?? "");
   const [shown, setShown] = useState(PAGE);
-  const muscle = params.get("muscle") ?? "";
+  const group = params.get("group") ?? "";
+  const region = params.get("region") ?? "";
   const place = (params.get("place") ?? "") as Place | "";
   const equipment = params.get("equipment") ?? "";
   const level = params.get("level") ?? "";
 
   useEffect(() => { loadExercises().then(setAll, (e) => setError(e.message)); }, []);
 
-  const setParam = (k: string, v: string) => {
+  const setParam = (k: string, v: string) => setParams({ [k]: v });
+  const setParams = (patch: Record<string, string>) => {
     const p = new URLSearchParams(params.toString());
-    if (v) p.set(k, v); else p.delete(k);
+    for (const [k, v] of Object.entries(patch)) { if (v) p.set(k, v); else p.delete(k); }
     router.replace(`${pathname}?${p.toString()}`, { scroll: false });
     setShown(PAGE);
   };
@@ -35,12 +37,16 @@ export function ExerciseLibrary() {
     if (!all) return [];
     const words = q.toLowerCase().split(/\s+/).filter(Boolean);
     return all.filter((e) =>
-      (!muscle || e.primary.includes(muscle)) &&
+      (!group || groupOf(e.region) === group) &&
+      (!region || e.region === region) &&
       (!place || e.places.includes(place)) &&
       (!equipment || e.equipment === equipment) &&
       (!level || e.level === level) &&
       words.every((w) => e.name.toLowerCase().includes(w)));
-  }, [all, q, muscle, place, equipment, level]);
+  }, [all, q, group, region, place, equipment, level]);
+
+  const counts: Record<string, number> = {};
+  for (const e of all ?? []) if ((!place || e.places.includes(place)) && ["strength", "powerlifting"].includes(e.category)) counts[e.region] = (counts[e.region] ?? 0) + 1;
 
   if (error) return <Alert>{error}</Alert>;
   if (!all) return <Spinner />;
@@ -51,16 +57,28 @@ export function ExerciseLibrary() {
       <input className={inputCls} type="search" placeholder="Search e.g. bench press, curl, squat…" value={q}
         onChange={(e) => { setQ(e.target.value); setShown(PAGE); }} aria-label="Search exercises" />
 
+      <div className="space-y-2">
+        <p className="text-xs font-bold uppercase tracking-widest text-muted">Muscle group</p>
+        <div className="flex flex-wrap gap-2">
+          <Chip active={!group} onClick={() => setParams({ group: "", region: "" })}>All</Chip>
+          {GROUPS.map((g) => <Chip key={g.key} active={group === g.key} onClick={() => setParams({ group: g.key, region: "" })}>{g.label}</Chip>)}
+        </div>
+        {group && (GROUPS.find((g) => g.key === group)?.regions.length ?? 0) > 1 && (
+          <div className="flex flex-wrap gap-2 rounded-2xl border border-line bg-surface p-2">
+            <Chip active={!region} onClick={() => setParams({ region: "" })}>All {GROUPS.find((g) => g.key === group)?.label.toLowerCase()}</Chip>
+            {GROUPS.find((g) => g.key === group)!.regions.map(([k, l]) => (
+              <Chip key={k} active={region === k} onClick={() => setParams({ region: k })}>{l} <span className="opacity-60">({counts[k] ?? 0})</span></Chip>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="flex flex-wrap gap-2">
         <Chip active={!place} onClick={() => setParam("place", "")}>Anywhere</Chip>
         {(Object.keys(PLACE_LABEL) as Place[]).map((p) => <Chip key={p} active={place === p} onClick={() => setParam("place", p)}>{PLACE_LABEL[p]}</Chip>)}
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <select className={select} value={muscle} onChange={(e) => setParam("muscle", e.target.value)} aria-label="Muscle">
-          <option value="">All muscles</option>
-          {MUSCLES.map((m) => <option key={m} value={m}>{title(m)}</option>)}
-        </select>
         <select className={select} value={equipment} onChange={(e) => setParam("equipment", e.target.value)} aria-label="Equipment">
           <option value="">All equipment</option>
           {Object.entries(EQUIPMENT_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
@@ -79,7 +97,7 @@ export function ExerciseLibrary() {
             <ExerciseThumb src={e.images[0]} hoverSrc={e.images[1]} />
             <div className="p-3">
               <p className="font-semibold leading-tight group-hover:text-accent">{e.name}</p>
-              <p className="mt-1 text-xs text-muted">{e.primary.map(title).join(", ")} · {EQUIPMENT_LABEL[e.equipment] ?? title(e.equipment)}</p>
+              <p className="mt-1 text-xs text-muted"><span className="font-semibold text-accent">{regionLabel(e.region)}</span> · {EQUIPMENT_LABEL[e.equipment] ?? title(e.equipment)}</p>
             </div>
           </Link>
         ))}

@@ -17,7 +17,7 @@ export const getExercise = (id: string) => getAllExercises().find((e) => e.id ==
 export function similar(e: Exercise, n = 6): Exercise[] {
   return getAllExercises()
     .filter((x) => x.id !== e.id && x.primary[0] === e.primary[0] && x.category === e.category)
-    .sort((a, b) => Number(b.equipment === e.equipment) - Number(a.equipment === e.equipment))
+    .sort((a, b) => Number(b.region === e.region) * 2 + Number(b.equipment === e.equipment) - (Number(a.region === e.region) * 2 + Number(a.equipment === e.equipment)))
     .slice(0, n);
 }
 

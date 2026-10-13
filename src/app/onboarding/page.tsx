@@ -62,7 +62,7 @@ function Wizard() {
         goal: d.goal, level: d.level, place: d.place, equipment: d.equipment ?? [], training_days: d.training_days,
         workout_minutes: d.workout_minutes, limitations: d.limitations ?? [], preferred_split: d.preferred_split ?? "auto",
         has_health_condition: !!d.has_health_condition, onboarded: true,
-        diet: d.diet, meals_per_day: d.meals_per_day ?? 4, allergies: d.allergies ?? [],
+        diet: d.diet, meals_per_day: d.meals_per_day ?? 4, allergies: d.allergies ?? [], daily_budget_inr: d.daily_budget_inr ?? null,
       });
       const plan = generatePlan(await loadExercises(), planInput(p));
       await savePlan(user!.id, plan);

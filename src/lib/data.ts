@@ -26,9 +26,10 @@ export interface Profile {
   diet: DietType | null;
   meals_per_day: number | null;
   allergies: Allergy[];
+  daily_budget_inr: number | null;
 }
 
-const PROFILE_COLS = "id,name,age,gender,height_cm,weight_kg,target_weight_kg,start_weight_kg,goal,level,place,equipment,training_days,workout_minutes,limitations,preferred_split,has_health_condition,onboarded,diet,meals_per_day,allergies";
+const PROFILE_COLS = "id,name,age,gender,height_cm,weight_kg,target_weight_kg,start_weight_kg,goal,level,place,equipment,training_days,workout_minutes,limitations,preferred_split,has_health_condition,onboarded,diet,meals_per_day,allergies,daily_budget_inr";
 
 export const toPlace = (p: Profile["place"]): Place => (p === "out" ? "outdoor" : p === "home" ? "home" : "gym");
 export const fromPlace = (p: Place): Profile["place"] => (p === "outdoor" ? "out" : p);

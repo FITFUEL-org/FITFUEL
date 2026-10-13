@@ -9,7 +9,7 @@ import { ExerciseDemo } from "@/components/ExerciseDemo";
 import { Alert, Button, Card, PageHeader, Spinner, inputCls } from "@/components/ui";
 import { usePlan } from "@/lib/usePlan";
 import { addSession, type LoggedExercise } from "@/lib/data";
-import { title, type Exercise } from "@/lib/exercises";
+import { regionLabel, title, type Exercise } from "@/lib/exercises";
 import { DAY_LABEL, type DayKey, type PlanDay } from "@/lib/planner";
 import { friendlyError } from "@/lib/supabase";
 
@@ -116,7 +116,7 @@ function Tracker({ day, planDay, byId }: { day: DayKey; planDay: PlanDay; byId: 
                 <button type="button" className="flex w-full items-center justify-between gap-3 text-left" onClick={() => setOpen(isOpen ? null : e.id)} aria-expanded={isOpen}>
                   <span>
                     <span className="block font-semibold">{ei + 1}. {e.name}</span>
-                    <span className="text-sm text-muted">{p ? `${p.sets} × ${p.reps}` : ""} · {ex?.primary.map(title).join(", ")}</span>
+                    <span className="text-sm text-muted">{p ? `${p.sets} × ${p.reps}` : ""} · {ex ? regionLabel(ex.region) : ""}</span>
                   </span>
                   <span className={`text-sm font-bold ${allDone ? "text-lime" : "text-muted"}`}>{e.sets.filter((s) => s.done).length}/{e.sets.length}</span>
                 </button>

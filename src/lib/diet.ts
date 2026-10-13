@@ -64,45 +64,46 @@ export function targets(p: NutritionInput): Targets | null {
 
 // ---- Foods (approximate values per serving) ----
 type Unit = "g" | "ml" | "pc" | "cup" | "katori" | "plate" | "tbsp" | "scoop" | "glass" | "bowl";
-interface Food { name: string; qty: number; unit: Unit; kcal: number; p: number; c: number; f: number; tags?: Allergy[]; whole?: boolean }
+// rs = approximate home-cooked cost per serving in ₹ (Indian city prices, 2026)
+interface Food { name: string; qty: number; unit: Unit; kcal: number; p: number; c: number; f: number; rs: number; tags?: Allergy[]; whole?: boolean }
 
 const F = {
-  roti: { name: "Roti / chapati", qty: 1, unit: "pc", kcal: 110, p: 3, c: 20, f: 2.5, tags: ["gluten"], whole: true },
-  rice: { name: "Cooked rice", qty: 1, unit: "cup", kcal: 195, p: 4, c: 43, f: 0.4 },
-  dal: { name: "Dal (cooked)", qty: 1, unit: "katori", kcal: 165, p: 9, c: 24, f: 3 },
-  rajma: { name: "Rajma (cooked)", qty: 1, unit: "katori", kcal: 210, p: 11, c: 32, f: 4 },
-  chole: { name: "Chole (cooked)", qty: 1, unit: "katori", kcal: 220, p: 11, c: 32, f: 5 },
-  paneer: { name: "Paneer (sabzi/bhurji)", qty: 100, unit: "g", kcal: 265, p: 18, c: 6, f: 20, tags: ["dairy"] },
-  tofu: { name: "Tofu (bhurji/sabzi)", qty: 150, unit: "g", kcal: 215, p: 22, c: 5, f: 12, tags: ["soy"] },
-  soya: { name: "Soya chunks curry (dry wt)", qty: 50, unit: "g", kcal: 170, p: 26, c: 16, f: 0.5, tags: ["soy"] },
-  curd: { name: "Curd / dahi", qty: 1, unit: "cup", kcal: 120, p: 7, c: 9, f: 6, tags: ["dairy"] },
-  greek: { name: "Greek yogurt / hung curd", qty: 150, unit: "g", kcal: 130, p: 15, c: 6, f: 5, tags: ["dairy"] },
-  milk: { name: "Milk (toned)", qty: 250, unit: "ml", kcal: 150, p: 8, c: 12, f: 8, tags: ["dairy"] },
-  soymilk: { name: "Soy milk", qty: 250, unit: "ml", kcal: 100, p: 7, c: 6, f: 4, tags: ["soy"] },
-  whey: { name: "Whey protein", qty: 1, unit: "scoop", kcal: 120, p: 24, c: 3, f: 1.5, tags: ["dairy"], whole: true },
-  egg: { name: "Whole eggs", qty: 1, unit: "pc", kcal: 72, p: 6, c: 0.4, f: 5, whole: true },
-  eggwhite: { name: "Egg whites", qty: 1, unit: "pc", kcal: 17, p: 3.6, c: 0.2, f: 0, whole: true },
-  chicken: { name: "Chicken breast (curry/grilled)", qty: 150, unit: "g", kcal: 250, p: 45, c: 2, f: 6 },
-  fish: { name: "Fish (curry/grilled)", qty: 150, unit: "g", kcal: 210, p: 33, c: 0, f: 8 },
-  oats: { name: "Oats (dry)", qty: 50, unit: "g", kcal: 190, p: 7, c: 33, f: 3.5, tags: ["gluten"] },
-  poha: { name: "Poha", qty: 1, unit: "plate", kcal: 250, p: 5, c: 45, f: 6 },
-  upma: { name: "Upma", qty: 1, unit: "plate", kcal: 250, p: 6, c: 40, f: 7, tags: ["gluten"] },
-  idli: { name: "Idli", qty: 1, unit: "pc", kcal: 40, p: 1.5, c: 8, f: 0.2, whole: true },
-  sambar: { name: "Sambar", qty: 1, unit: "katori", kcal: 110, p: 5, c: 15, f: 3 },
-  chilla: { name: "Besan / moong chilla", qty: 1, unit: "pc", kcal: 120, p: 6, c: 14, f: 4.5, whole: true },
-  sprouts: { name: "Moong sprouts chaat", qty: 1, unit: "cup", kcal: 105, p: 8, c: 18, f: 0.5 },
-  banana: { name: "Banana", qty: 1, unit: "pc", kcal: 105, p: 1.3, c: 27, f: 0.4, whole: true },
-  apple: { name: "Apple / seasonal fruit", qty: 1, unit: "pc", kcal: 95, p: 0.5, c: 25, f: 0.3, whole: true },
-  pb: { name: "Peanut butter", qty: 1, unit: "tbsp", kcal: 95, p: 4, c: 3, f: 8, tags: ["nuts"] },
-  peanuts: { name: "Roasted peanuts", qty: 30, unit: "g", kcal: 170, p: 7, c: 5, f: 14, tags: ["nuts"] },
-  almonds: { name: "Almonds", qty: 20, unit: "g", kcal: 115, p: 4, c: 4, f: 10, tags: ["nuts"] },
-  sabzi: { name: "Mixed veg sabzi", qty: 1, unit: "katori", kcal: 120, p: 3, c: 12, f: 7 },
-  salad: { name: "Salad (cucumber, onion, tomato)", qty: 1, unit: "bowl", kcal: 40, p: 2, c: 8, f: 0.2 },
-  bread: { name: "Whole-wheat bread", qty: 1, unit: "pc", kcal: 70, p: 3, c: 12, f: 1, tags: ["gluten"], whole: true },
-  chana: { name: "Roasted chana", qty: 40, unit: "g", kcal: 150, p: 8, c: 24, f: 2.5 },
-  makhana: { name: "Roasted makhana", qty: 30, unit: "g", kcal: 105, p: 3, c: 23, f: 0.2 },
-  sattu: { name: "Sattu drink", qty: 40, unit: "g", kcal: 160, p: 8, c: 26, f: 2.5 },
-  buttermilk: { name: "Chaas / buttermilk", qty: 1, unit: "glass", kcal: 60, p: 3, c: 5, f: 2, tags: ["dairy"] },
+  roti: { name: "Roti / chapati", qty: 1, unit: "pc", kcal: 110, p: 3, c: 20, f: 2.5, rs: 4, tags: ["gluten"], whole: true },
+  rice: { name: "Cooked rice", qty: 1, unit: "cup", kcal: 195, p: 4, c: 43, f: 0.4, rs: 8 },
+  dal: { name: "Dal (cooked)", qty: 1, unit: "katori", kcal: 165, p: 9, c: 24, f: 3, rs: 12 },
+  rajma: { name: "Rajma (cooked)", qty: 1, unit: "katori", kcal: 210, p: 11, c: 32, f: 4, rs: 15 },
+  chole: { name: "Chole (cooked)", qty: 1, unit: "katori", kcal: 220, p: 11, c: 32, f: 5, rs: 14 },
+  paneer: { name: "Paneer (sabzi/bhurji)", qty: 100, unit: "g", kcal: 265, p: 18, c: 6, f: 20, rs: 45, tags: ["dairy"] },
+  tofu: { name: "Tofu (bhurji/sabzi)", qty: 150, unit: "g", kcal: 215, p: 22, c: 5, f: 12, rs: 50, tags: ["soy"] },
+  soya: { name: "Soya chunks curry (dry wt)", qty: 50, unit: "g", kcal: 170, p: 26, c: 16, f: 0.5, rs: 10, tags: ["soy"] },
+  curd: { name: "Curd / dahi", qty: 1, unit: "cup", kcal: 120, p: 7, c: 9, f: 6, rs: 15, tags: ["dairy"] },
+  greek: { name: "Greek yogurt / hung curd", qty: 150, unit: "g", kcal: 130, p: 15, c: 6, f: 5, rs: 40, tags: ["dairy"] },
+  milk: { name: "Milk (toned)", qty: 250, unit: "ml", kcal: 150, p: 8, c: 12, f: 8, rs: 16, tags: ["dairy"] },
+  soymilk: { name: "Soy milk", qty: 250, unit: "ml", kcal: 100, p: 7, c: 6, f: 4, rs: 35, tags: ["soy"] },
+  whey: { name: "Whey protein", qty: 1, unit: "scoop", kcal: 120, p: 24, c: 3, f: 1.5, rs: 70, tags: ["dairy"], whole: true },
+  egg: { name: "Whole eggs", qty: 1, unit: "pc", kcal: 72, p: 6, c: 0.4, f: 5, rs: 7, whole: true },
+  eggwhite: { name: "Egg whites", qty: 1, unit: "pc", kcal: 17, p: 3.6, c: 0.2, f: 0, rs: 7, whole: true },
+  chicken: { name: "Chicken breast (curry/grilled)", qty: 150, unit: "g", kcal: 250, p: 45, c: 2, f: 6, rs: 60 },
+  fish: { name: "Fish (curry/grilled)", qty: 150, unit: "g", kcal: 210, p: 33, c: 0, f: 8, rs: 60 },
+  oats: { name: "Oats (dry)", qty: 50, unit: "g", kcal: 190, p: 7, c: 33, f: 3.5, rs: 10, tags: ["gluten"] },
+  poha: { name: "Poha", qty: 1, unit: "plate", kcal: 250, p: 5, c: 45, f: 6, rs: 15 },
+  upma: { name: "Upma", qty: 1, unit: "plate", kcal: 250, p: 6, c: 40, f: 7, rs: 15, tags: ["gluten"] },
+  idli: { name: "Idli", qty: 1, unit: "pc", kcal: 40, p: 1.5, c: 8, f: 0.2, rs: 5, whole: true },
+  sambar: { name: "Sambar", qty: 1, unit: "katori", kcal: 110, p: 5, c: 15, f: 3, rs: 12 },
+  chilla: { name: "Besan / moong chilla", qty: 1, unit: "pc", kcal: 120, p: 6, c: 14, f: 4.5, rs: 8, whole: true },
+  sprouts: { name: "Moong sprouts chaat", qty: 1, unit: "cup", kcal: 105, p: 8, c: 18, f: 0.5, rs: 12 },
+  banana: { name: "Banana", qty: 1, unit: "pc", kcal: 105, p: 1.3, c: 27, f: 0.4, rs: 6, whole: true },
+  apple: { name: "Apple / seasonal fruit", qty: 1, unit: "pc", kcal: 95, p: 0.5, c: 25, f: 0.3, rs: 25, whole: true },
+  pb: { name: "Peanut butter", qty: 1, unit: "tbsp", kcal: 95, p: 4, c: 3, f: 8, rs: 8, tags: ["nuts"] },
+  peanuts: { name: "Roasted peanuts", qty: 30, unit: "g", kcal: 170, p: 7, c: 5, f: 14, rs: 5, tags: ["nuts"] },
+  almonds: { name: "Almonds", qty: 20, unit: "g", kcal: 115, p: 4, c: 4, f: 10, rs: 25, tags: ["nuts"] },
+  sabzi: { name: "Mixed veg sabzi", qty: 1, unit: "katori", kcal: 120, p: 3, c: 12, f: 7, rs: 15 },
+  salad: { name: "Salad (cucumber, onion, tomato)", qty: 1, unit: "bowl", kcal: 40, p: 2, c: 8, f: 0.2, rs: 10 },
+  bread: { name: "Whole-wheat bread", qty: 1, unit: "pc", kcal: 70, p: 3, c: 12, f: 1, rs: 4, tags: ["gluten"], whole: true },
+  chana: { name: "Roasted chana", qty: 40, unit: "g", kcal: 150, p: 8, c: 24, f: 2.5, rs: 6 },
+  makhana: { name: "Roasted makhana", qty: 30, unit: "g", kcal: 105, p: 3, c: 23, f: 0.2, rs: 30 },
+  sattu: { name: "Sattu drink", qty: 40, unit: "g", kcal: 160, p: 8, c: 26, f: 2.5, rs: 6 },
+  buttermilk: { name: "Chaas / buttermilk", qty: 1, unit: "glass", kcal: 60, p: 3, c: 5, f: 2, rs: 10, tags: ["dairy"] },
 } satisfies Record<string, Food>;
 
 type K = keyof typeof F;
@@ -171,9 +172,9 @@ const SPLITS: Record<number, [Slot, number][]> = {
   5: [["breakfast", 0.22], ["lunch", 0.3], ["snack", 0.15], ["dinner", 0.23], ["bedtime", 0.1]],
 };
 
-export interface PlannedFood { name: string; amount: string; kcal: number; protein: number; carbs: number; fat: number }
-export interface PlannedMeal { slot: Slot; name: string; foods: PlannedFood[]; kcal: number; protein: number; carbs: number; fat: number; options: number; option: number }
-export interface DayMeals { meals: PlannedMeal[]; kcal: number; protein: number; carbs: number; fat: number }
+export interface PlannedFood { name: string; amount: string; kcal: number; protein: number; carbs: number; fat: number; rs: number }
+export interface PlannedMeal { slot: Slot; name: string; foods: PlannedFood[]; kcal: number; protein: number; carbs: number; fat: number; rs: number; options: number; option: number }
+export interface DayMeals { meals: PlannedMeal[]; kcal: number; protein: number; carbs: number; fat: number; rs: number }
 
 function amount(f: Food, servings: number): string {
   const q = f.qty * servings;
@@ -204,10 +205,10 @@ export function buildMeal(slot: Slot, meal: Meal, kcalTarget: number | null, opt
   const foods = meal.items.map(([k, n]) => {
     const f = F[k] as Food;
     const s = servingsShown(f, n * scale);
-    return { name: f.name, amount: amount(f, n * scale), kcal: Math.round(f.kcal * s), protein: Math.round(f.p * s), carbs: Math.round(f.c * s), fat: Math.round(f.f * s) };
+    return { name: f.name, amount: amount(f, n * scale), kcal: Math.round(f.kcal * s), protein: Math.round(f.p * s), carbs: Math.round(f.c * s), fat: Math.round(f.f * s), rs: Math.max(1, Math.round(f.rs * s)) };
   });
-  const sum = (key: "kcal" | "protein" | "carbs" | "fat") => foods.reduce((a, x) => a + x[key], 0);
-  return { slot, name: meal.name, foods, kcal: sum("kcal"), protein: sum("protein"), carbs: sum("carbs"), fat: sum("fat"), option, options };
+  const sum = (key: "kcal" | "protein" | "carbs" | "fat" | "rs") => foods.reduce((a, x) => a + x[key], 0);
+  return { slot, name: meal.name, foods, kcal: sum("kcal"), protein: sum("protein"), carbs: sum("carbs"), fat: sum("fat"), rs: sum("rs"), option, options };
 }
 
 /** A full day. `day` rotates meals through the week; `swaps` bumps a slot to another idea. */
@@ -219,6 +220,6 @@ export function dayMeals(day: DayKey, diet: DietType, mealsPerDay: number, aller
     const option = (d + (swaps[slot] ?? 0)) % opts.length;
     return buildMeal(slot, opts[option], kcal ? kcal * share : null, option, opts.length);
   });
-  const sum = (key: "kcal" | "protein" | "carbs" | "fat") => meals.reduce((a, m) => a + m[key], 0);
-  return { meals, kcal: sum("kcal"), protein: sum("protein"), carbs: sum("carbs"), fat: sum("fat") };
+  const sum = (key: "kcal" | "protein" | "carbs" | "fat" | "rs") => meals.reduce((a, m) => a + m[key], 0);
+  return { meals, kcal: sum("kcal"), protein: sum("protein"), carbs: sum("carbs"), fat: sum("fat"), rs: sum("rs") };
 }

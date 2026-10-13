@@ -2,7 +2,9 @@
 
 Usage: python scripts/prepare-exercises.py path/to/exercises.json
 """
-import json, re, sys
+import json, os, re, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from regions import region
 
 HOME = {"body only", "dumbbell", "kettlebells", "bands", "exercise ball", "medicine ball", "foam roll", None}
 OUTDOOR = {"body only", "bands", "kettlebells", "medicine ball", None}
@@ -20,6 +22,7 @@ for x in src:
         "primary": x["primaryMuscles"], "secondary": x["secondaryMuscles"],
         "steps": [re.sub(r"\s+", " ", s).strip() for s in x["instructions"]],
         "images": x["images"], "places": sorted(set(places)),
+        "region": region(x["primaryMuscles"][0] if x["primaryMuscles"] else "", x["name"]),
     })
 out.sort(key=lambda e: e["name"].lower())
 json.dump(out, open("public/data/exercises.json", "w", encoding="utf-8"), separators=(",", ":"), ensure_ascii=False)

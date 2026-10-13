@@ -47,3 +47,16 @@ describe("meal plan", () => {
     expect(b.meals[1].name).not.toBe(a.meals[1].name);
   });
 });
+
+describe("meal costs", () => {
+  it("prices every food and sums meals and days", () => {
+    const d = dayMeals("wed", "nv", 4, [], 2400);
+    for (const m of d.meals) {
+      for (const f of m.foods) expect(f.rs).toBeGreaterThan(0);
+      expect(m.rs).toBe(m.foods.reduce((a, f) => a + f.rs, 0));
+    }
+    expect(d.rs).toBe(d.meals.reduce((a, m) => a + m.rs, 0));
+    expect(d.rs).toBeGreaterThan(60);
+    expect(d.rs).toBeLessThan(600);
+  });
+});

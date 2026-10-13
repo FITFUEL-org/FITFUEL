@@ -248,6 +248,12 @@ export function DietFields({ d, set }: P) {
         </div>
       </div>
       <div>
+        <Field label="Daily food budget (₹)" hint="Optional — we'll show if a day's meals go over it.">
+          <input className={inputCls} type="number" inputMode="numeric" min={0} max={5000} placeholder="e.g. 250"
+            value={d.daily_budget_inr ?? ""} onChange={(e) => set({ daily_budget_inr: e.target.value === "" ? null : Number(e.target.value) })} />
+        </Field>
+      </div>
+      <div>
         <p className="mb-2 text-sm font-medium">Allergies or foods you avoid</p>
         <div className="flex flex-wrap gap-2">
           {(Object.keys(ALLERGY_LABEL) as Allergy[]).map((k) => <Chip key={k} active={al.includes(k)} onClick={() => toggle(k)}>{ALLERGY_LABEL[k]}</Chip>)}

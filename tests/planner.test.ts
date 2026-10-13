@@ -80,3 +80,20 @@ describe("planner", () => {
     }
   });
 });
+
+describe("muscle regions", () => {
+  it("push days hit upper and middle chest separately", () => {
+    const p = generatePlan(all, { ...base, split: "ppl", days: ["mon", "wed", "fri"], minutes: 75 });
+    const push = p.days.find((d) => d.type === "push")!;
+    const regions = push.exercises.map((x) => byId.get(x.id)!.region);
+    expect(regions).toContain("chest-upper");
+    expect(regions).toContain("chest-middle");
+    expect(regions).toContain("delts-side");
+  });
+  it("swaps stay in the same region", () => {
+    const p = generatePlan(all, { ...base, split: "ppl" });
+    const day = p.days[0];
+    const ex = day.exercises.find((x) => x.muscle === "chest-upper")!;
+    for (const a of alternatives(all, base, day, ex)) expect(a.region).toBe("chest-upper");
+  });
+});

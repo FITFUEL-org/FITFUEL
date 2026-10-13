@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
-import { title, type Exercise } from "@/lib/exercises";
+import { regionLabel, title, type Exercise } from "@/lib/exercises";
 import type { PlannedExercise } from "@/lib/planner";
 
 /** Compact exercise line: thumbnail, name, target muscles and the sets × reps prescription. */
@@ -15,7 +15,10 @@ export function ExerciseRow({ ex, p, index, action }: { ex?: Exercise; p: Planne
       </Link>
       <div className="min-w-0 flex-1">
         <Link href={`/exercises/${p.id}/`} className="block truncate font-semibold hover:text-accent">{ex?.name ?? p.id}</Link>
-        <p className="truncate text-xs text-muted">{ex ? ex.primary.map(title).join(", ") : p.muscle} · {ex ? title(ex.equipment) : ""}</p>
+        <p className="truncate text-xs text-muted">
+          <span className="font-semibold text-accent">{p.muscle === "cardio" ? "Cardio finisher" : regionLabel(ex?.region ?? p.muscle)}</span>
+          {ex ? ` · ${title(ex.equipment)}` : ""}
+        </p>
         <p className="mt-1 text-sm">
           <b className="text-lime">{p.sets} × {p.reps}</b>
           {p.restSec > 0 && <span className="text-muted"> · rest {p.restSec >= 120 ? `${p.restSec / 60} min` : `${p.restSec}s`}</span>}

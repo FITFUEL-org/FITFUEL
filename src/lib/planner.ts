@@ -1,5 +1,6 @@
 // Weekly workout plan generator. Pure functions: same profile + seed => same plan.
 import type { Exercise, Place, Level } from "./exercises";
+import { regionLabel } from "./exercises";
 
 export type Goal = "muscle" | "strength" | "fat_loss" | "general";
 export type Experience = "beg" | "int" | "adv";
@@ -63,19 +64,19 @@ const DAY_TITLE: Record<DayType, string> = {
 
 // Slots in priority order; the session length decides how many are used.
 const SLOTS: Record<DayType, Slot[]> = {
-  push: [["chest", "compound"], ["shoulders", "compound"], ["chest", "any"], ["triceps", "isolation"], ["shoulders", "isolation"], ["chest", "isolation"], ["triceps", "any"]],
-  pull: [["lats", "compound"], ["middle back", "compound"], ["lats", "any"], ["biceps", "isolation"], ["traps", "any"], ["biceps", "any"], ["forearms", "any"]],
-  legs: [["quadriceps", "compound"], ["hamstrings", "compound"], ["glutes", "any"], ["quadriceps", "isolation"], ["calves", "any"], ["abdominals", "any"], ["hamstrings", "isolation"]],
-  upper: [["chest", "compound"], ["lats", "compound"], ["shoulders", "compound"], ["middle back", "compound"], ["biceps", "isolation"], ["triceps", "isolation"], ["chest", "isolation"]],
-  lower: [["quadriceps", "compound"], ["hamstrings", "compound"], ["glutes", "any"], ["quadriceps", "isolation"], ["calves", "any"], ["abdominals", "any"], ["lower back", "any"]],
-  full_a: [["quadriceps", "compound"], ["chest", "compound"], ["lats", "compound"], ["shoulders", "any"], ["hamstrings", "any"], ["abdominals", "any"], ["biceps", "isolation"]],
-  full_b: [["hamstrings", "compound"], ["shoulders", "compound"], ["middle back", "compound"], ["chest", "any"], ["quadriceps", "any"], ["abdominals", "any"], ["triceps", "isolation"]],
-  full_c: [["glutes", "compound"], ["chest", "compound"], ["lats", "any"], ["shoulders", "isolation"], ["quadriceps", "isolation"], ["calves", "any"], ["abdominals", "any"]],
-  chest: [["chest", "compound"], ["chest", "compound"], ["chest", "any"], ["chest", "isolation"], ["triceps", "any"], ["abdominals", "any"], ["chest", "isolation"]],
-  back: [["lats", "compound"], ["middle back", "compound"], ["lats", "any"], ["middle back", "any"], ["lower back", "any"], ["traps", "any"], ["lats", "isolation"]],
-  shoulders: [["shoulders", "compound"], ["shoulders", "isolation"], ["shoulders", "any"], ["traps", "any"], ["shoulders", "isolation"], ["abdominals", "any"], ["neck", "any"]],
+  push: [["chest-middle", "compound"], ["delts-front", "compound"], ["chest-upper", "any"], ["triceps", "isolation"], ["delts-side", "isolation"], ["chest-lower", "any"], ["triceps", "any"]],
+  pull: [["back-lats", "compound"], ["back-upper", "compound"], ["back-lats", "any"], ["biceps", "isolation"], ["delts-rear", "any"], ["biceps", "any"], ["back-lower", "any"]],
+  legs: [["legs-quads", "compound"], ["legs-hamstrings", "compound"], ["legs-glutes", "any"], ["legs-quads", "isolation"], ["legs-calves", "any"], ["abs-lower", "any"], ["abs-obliques", "any"]],
+  upper: [["chest-middle", "compound"], ["back-lats", "compound"], ["delts-front", "compound"], ["back-upper", "compound"], ["chest-upper", "any"], ["biceps", "isolation"], ["triceps", "isolation"]],
+  lower: [["legs-quads", "compound"], ["legs-hamstrings", "compound"], ["legs-glutes", "any"], ["legs-quads", "isolation"], ["legs-calves", "any"], ["abs-upper", "any"], ["abs-lower", "any"]],
+  full_a: [["legs-quads", "compound"], ["chest-middle", "compound"], ["back-lats", "compound"], ["delts-side", "any"], ["legs-hamstrings", "any"], ["abs-upper", "any"], ["biceps", "isolation"]],
+  full_b: [["legs-hamstrings", "compound"], ["delts-front", "compound"], ["back-upper", "compound"], ["chest-upper", "any"], ["legs-quads", "any"], ["abs-lower", "any"], ["triceps", "isolation"]],
+  full_c: [["legs-glutes", "compound"], ["chest-middle", "compound"], ["back-lats", "any"], ["delts-rear", "any"], ["legs-quads", "isolation"], ["legs-calves", "any"], ["abs-obliques", "any"]],
+  chest: [["chest-middle", "compound"], ["chest-upper", "compound"], ["chest-lower", "any"], ["chest-upper", "isolation"], ["chest-middle", "isolation"], ["triceps", "any"], ["abs-upper", "any"]],
+  back: [["back-lats", "compound"], ["back-upper", "compound"], ["back-lats", "any"], ["back-upper", "any"], ["back-lower", "any"], ["delts-rear", "any"], ["back-lats", "isolation"]],
+  shoulders: [["delts-front", "compound"], ["delts-side", "isolation"], ["delts-rear", "any"], ["back-upper", "any"], ["delts-side", "any"], ["delts-front", "isolation"], ["abs-obliques", "any"]],
   arms: [["biceps", "any"], ["triceps", "compound"], ["biceps", "isolation"], ["triceps", "isolation"], ["forearms", "any"], ["biceps", "isolation"], ["triceps", "any"]],
-  conditioning: [["quadriceps", "compound"], ["abdominals", "any"], ["glutes", "any"], ["shoulders", "any"], ["abdominals", "any"], ["calves", "any"], ["lats", "any"]],
+  conditioning: [["legs-quads", "compound"], ["abs-upper", "any"], ["legs-glutes", "any"], ["delts-front", "any"], ["abs-obliques", "any"], ["legs-calves", "any"], ["back-lats", "any"]],
 };
 
 const SEQUENCE: Record<Exclude<Split, "auto">, DayType[]> = {
@@ -86,7 +87,7 @@ const SEQUENCE: Record<Exclude<Split, "auto">, DayType[]> = {
 };
 
 const FOCUS: Record<DayType, string[]> = Object.fromEntries(
-  Object.entries(SLOTS).map(([k, s]) => [k, [...new Set(s.map(([m]) => m))].slice(0, 4)]),
+  Object.entries(SLOTS).map(([k, s]) => [k, [...new Set(s.map(([m]) => regionLabel(m)))].slice(0, 5)]),
 ) as Record<DayType, string[]>;
 
 /** Pick a split from the number of training days (and experience) when the user chose "auto". */
@@ -142,11 +143,14 @@ export function isAllowed(e: Exercise, input: Pick<PlanInput, "place" | "equipme
   return !input.limitations.some((l) => AVOID[l].test(e.name));
 }
 
+/** Does an exercise train this slot? Slots name a region ("chest-upper"); older plans used whole muscles ("chest"). */
+export const targets = (e: Exercise, key: string) => e.region === key || (!key.includes("-") && e.primary.includes(key));
+
 /** Ranked candidates for one slot (best first). */
 export function candidates(all: Exercise[], input: PlanInput, slot: Slot, place: Place, salt: string): Exercise[] {
   const [muscle, mech] = slot;
   return all
-    .filter((e) => e.primary.includes(muscle) && isAllowed(e, input, place) && e.category !== "cardio")
+    .filter((e) => targets(e, muscle) && isAllowed(e, input, place) && e.category !== "cardio")
     .map((e) => {
       let score = hash(input.seed + salt + e.id) % 1000;
       if (STAPLE.test(e.name)) score += 3000;
