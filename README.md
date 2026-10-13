@@ -7,4 +7,3 @@ Fitness + Indian diet planner. The UI is being rebuilt from scratch.
 - `docs/supabase.md` — how the Supabase project and auth are set up.
 - `.env.example` — `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` (never put the access token in a file).
 
-The previous UI is available at git tag `ui-v1`.
