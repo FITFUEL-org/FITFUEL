@@ -36,7 +36,7 @@ Configure these in the GitHub repository under **Settings → Secrets and variab
 **Repository variables** (the Supabase URL and publishable key are public build-time values):
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `HOSTINGER_FTP_SERVER_DIR` — the website's document-root directory as seen by the FTP account, ending in `/` (for example, `public_html/`; confirm the exact path in Hostinger)
+- `HOSTINGER_FTP_SERVER_DIR` — the website's document-root directory as seen by the FTP account, ending in `/`. Use `./` if logging into FTP opens the website root directly; use `public_html/` only if you first need to open a `public_html` folder.
 
 **Repository secrets**:
 - `HOSTINGER_FTP_SERVER` — the FTP host from Hostinger
