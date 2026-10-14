@@ -225,11 +225,11 @@ export function dayMeals(day: DayKey, diet: DietType, mealsPerDay: number, aller
   });
   const preferred = choices.map((options) => options.find((x) => x.selected)!.meal);
   const sum = (meals: PlannedMeal[], key: "kcal" | "protein" | "carbs" | "fat" | "rs") => meals.reduce((a, m) => a + m[key], 0);
-  const hasBudget = budget != null && Number.isFinite(budget);
+  const budgetLimit = typeof budget === "number" && Number.isFinite(budget) ? budget : null;
   let meals = preferred;
   let withinBudget = true;
 
-  if (hasBudget && sum(meals, "rs") > budget) {
+  if (budgetLimit !== null && sum(meals, "rs") > budgetLimit) {
     let best: PlannedMeal[] | null = null;
     let bestScore = Number.POSITIVE_INFINITY;
     const current: PlannedMeal[] = [];
@@ -237,7 +237,7 @@ export function dayMeals(day: DayKey, diet: DietType, mealsPerDay: number, aller
     function choose(slotIndex: number) {
       if (slotIndex === choices.length) {
         const cost = sum(current, "rs");
-        if (cost > budget) return;
+        if (cost > budgetLimit) return;
         const calorieError = kcal == null ? 0 : Math.abs(sum(current, "kcal") - kcal);
         const changedOptions = current.reduce((n, meal, i) => n + Number(meal.option !== preferred[i].option), 0);
         const score = calorieError + changedOptions * 10;
