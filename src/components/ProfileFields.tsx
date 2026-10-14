@@ -248,7 +248,7 @@ export function DietFields({ d, set }: P) {
         </div>
       </div>
       <div>
-        <Field label="Daily food budget (₹)" hint="Optional — we'll show if a day's meals go over it.">
+        <Field label="Daily food budget (₹)" hint="Optional — meal plans stay within this daily amount.">
           <input className={inputCls} type="number" inputMode="numeric" min={0} max={5000} placeholder="e.g. 250"
             value={d.daily_budget_inr ?? ""} onChange={(e) => set({ daily_budget_inr: e.target.value === "" ? null : Number(e.target.value) })} />
         </Field>

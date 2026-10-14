@@ -45,6 +45,18 @@ export function ExerciseLibrary() {
       words.every((w) => e.name.toLowerCase().includes(w)));
   }, [all, q, group, region, place, equipment, level]);
 
+  const sections = useMemo(() => {
+    const visible = list.slice(0, shown);
+    return [
+      ...GROUPS.map(({ key, label }) => ({
+        key,
+        label,
+        exercises: visible.filter((e) => groupOf(e.region) === key),
+      })),
+      { key: "other", label: "Other", exercises: visible.filter((e) => !groupOf(e.region)) },
+    ].filter((section) => section.exercises.length > 0);
+  }, [list, shown]);
+
   const counts: Record<string, number> = {};
   for (const e of all ?? []) if ((!place || e.places.includes(place)) && ["strength", "powerlifting"].includes(e.category)) counts[e.region] = (counts[e.region] ?? 0) + 1;
 
@@ -91,15 +103,22 @@ export function ExerciseLibrary() {
 
       <p className="text-sm text-muted" aria-live="polite">{list.length} exercises</p>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {list.slice(0, shown).map((e) => (
-          <Link key={e.id} href={`/exercises/${e.id}/`} className="group overflow-hidden rounded-2xl border border-line bg-surface transition hover:-translate-y-0.5 hover:border-accent">
-            <ExerciseThumb src={e.images[0]} hoverSrc={e.images[1]} />
-            <div className="p-3">
-              <p className="font-semibold leading-tight group-hover:text-accent">{e.name}</p>
-              <p className="mt-1 text-xs text-muted"><span className="font-semibold text-accent">{regionLabel(e.region)}</span> · {EQUIPMENT_LABEL[e.equipment] ?? title(e.equipment)}</p>
+      <div className="space-y-7">
+        {sections.map((section) => (
+          <section key={section.key} aria-labelledby={`muscle-${section.key}`}>
+            <h2 id={`muscle-${section.key}`} className="mb-3 font-display text-xl uppercase tracking-wide">{section.label}</h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {section.exercises.map((e) => (
+                <Link key={e.id} href={`/exercises/${e.id}/`} className="group overflow-hidden rounded-2xl border border-line bg-surface transition hover:-translate-y-0.5 hover:border-accent">
+                  <ExerciseThumb src={e.images[0]} hoverSrc={e.images[1]} />
+                  <div className="p-3">
+                    <p className="font-semibold leading-tight group-hover:text-accent">{e.name}</p>
+                    <p className="mt-1 text-xs text-muted"><span className="font-semibold text-accent">{regionLabel(e.region)}</span> · {EQUIPMENT_LABEL[e.equipment] ?? title(e.equipment)}</p>
+                  </div>
+                </Link>
+              ))}
             </div>
-          </Link>
+          </section>
         ))}
       </div>
 

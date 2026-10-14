@@ -174,7 +174,7 @@ const SPLITS: Record<number, [Slot, number][]> = {
 
 export interface PlannedFood { name: string; amount: string; kcal: number; protein: number; carbs: number; fat: number; rs: number }
 export interface PlannedMeal { slot: Slot; name: string; foods: PlannedFood[]; kcal: number; protein: number; carbs: number; fat: number; rs: number; options: number; option: number }
-export interface DayMeals { meals: PlannedMeal[]; kcal: number; protein: number; carbs: number; fat: number; rs: number }
+export interface DayMeals { meals: PlannedMeal[]; kcal: number; protein: number; carbs: number; fat: number; rs: number; withinBudget: boolean }
 
 function amount(f: Food, servings: number): string {
   const q = f.qty * servings;
@@ -212,14 +212,63 @@ export function buildMeal(slot: Slot, meal: Meal, kcalTarget: number | null, opt
 }
 
 /** A full day. `day` rotates meals through the week; `swaps` bumps a slot to another idea. */
-export function dayMeals(day: DayKey, diet: DietType, mealsPerDay: number, allergies: Allergy[], kcal: number | null, swaps: Partial<Record<Slot, number>> = {}): DayMeals {
+export function dayMeals(day: DayKey, diet: DietType, mealsPerDay: number, allergies: Allergy[], kcal: number | null, swaps: Partial<Record<Slot, number>> = {}, budget?: number | null): DayMeals {
   const split = SPLITS[Math.min(5, Math.max(3, mealsPerDay))];
   const d = WEEK.indexOf(day);
-  const meals = split.map(([slot, share]) => {
+  const choices = split.map(([slot, share]) => {
     const opts = mealOptions(slot, diet, allergies);
-    const option = (d + (swaps[slot] ?? 0)) % opts.length;
-    return buildMeal(slot, opts[option], kcal ? kcal * share : null, option, opts.length);
+    const selected = (d + (swaps[slot] ?? 0)) % opts.length;
+    return opts.map((meal, option) => ({
+      meal: buildMeal(slot, meal, kcal ? kcal * share : null, option, opts.length),
+      selected: option === selected,
+    }));
   });
-  const sum = (key: "kcal" | "protein" | "carbs" | "fat" | "rs") => meals.reduce((a, m) => a + m[key], 0);
-  return { meals, kcal: sum("kcal"), protein: sum("protein"), carbs: sum("carbs"), fat: sum("fat"), rs: sum("rs") };
+  const preferred = choices.map((options) => options.find((x) => x.selected)!.meal);
+  const sum = (meals: PlannedMeal[], key: "kcal" | "protein" | "carbs" | "fat" | "rs") => meals.reduce((a, m) => a + m[key], 0);
+  const hasBudget = budget != null && Number.isFinite(budget);
+  let meals = preferred;
+  let withinBudget = true;
+
+  if (hasBudget && sum(meals, "rs") > budget) {
+    let best: PlannedMeal[] | null = null;
+    let bestScore = Number.POSITIVE_INFINITY;
+    const current: PlannedMeal[] = [];
+
+    function choose(slotIndex: number) {
+      if (slotIndex === choices.length) {
+        const cost = sum(current, "rs");
+        if (cost > budget) return;
+        const calorieError = kcal == null ? 0 : Math.abs(sum(current, "kcal") - kcal);
+        const changedOptions = current.reduce((n, meal, i) => n + Number(meal.option !== preferred[i].option), 0);
+        const score = calorieError + changedOptions * 10;
+        if (score < bestScore) {
+          best = [...current];
+          bestScore = score;
+        }
+        return;
+      }
+      for (const option of choices[slotIndex]) {
+        current.push(option.meal);
+        choose(slotIndex + 1);
+        current.pop();
+      }
+    }
+
+    choose(0);
+    if (best) meals = best;
+    else {
+      meals = [];
+      withinBudget = false;
+    }
+  }
+
+  return {
+    meals,
+    kcal: sum(meals, "kcal"),
+    protein: sum(meals, "protein"),
+    carbs: sum(meals, "carbs"),
+    fat: sum(meals, "fat"),
+    rs: sum(meals, "rs"),
+    withinBudget,
+  };
 }

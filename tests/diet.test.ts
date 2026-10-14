@@ -59,4 +59,17 @@ describe("meal costs", () => {
     expect(d.rs).toBeGreaterThan(60);
     expect(d.rs).toBeLessThan(600);
   });
+
+  it("chooses affordable meal options without exceeding the daily budget", () => {
+    const d = dayMeals("mon", "veg", 4, [], 2200, {}, 250);
+    expect(d.withinBudget).toBe(true);
+    expect(d.meals).toHaveLength(4);
+    expect(d.rs).toBeLessThanOrEqual(250);
+  });
+
+  it("does not return meals when no complete plan fits the budget", () => {
+    const d = dayMeals("mon", "veg", 4, [], 2200, {}, 1);
+    expect(d.withinBudget).toBe(false);
+    expect(d.meals).toHaveLength(0);
+  });
 });
