@@ -28,7 +28,21 @@ npm run build                # static export to out/
 | `public/data/exercises.json` | Trimmed exercise library, built by `scripts/prepare-exercises.py` |
 | `supabase/migrations/` | Database schema (apply in order) |
 
-## Deploy
-`npm run build`, zip the contents of `out/` (including `.htaccess`) and deploy to aayush.revseek.in on Hostinger.
+## Deploy to Hostinger
+The GitHub Actions workflow in `.github/workflows/deploy-hostinger.yml` runs lint, tests and a static export for pull requests and pushes to `main`. A successful push to `main` (or a manual run on `main`) also deploys `out/` to Hostinger over FTPS. Pull requests and other branches are never deployed.
+
+Configure these in the GitHub repository under **Settings → Secrets and variables → Actions**:
+
+**Repository variables** (the Supabase URL and publishable key are public build-time values):
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `HOSTINGER_FTP_SERVER_DIR` — the website's document-root directory as seen by the FTP account, ending in `/` (for example, `public_html/`; confirm the exact path in Hostinger)
+
+**Repository secrets**:
+- `HOSTINGER_FTP_SERVER` — the FTP host from Hostinger
+- `HOSTINGER_FTP_USERNAME`
+- `HOSTINGER_FTP_PASSWORD`
+
+Create an FTP account in Hostinger if needed and make sure it has access to the configured website directory. Once the settings are saved, merge or push changes to `main`; deployment runs only after all checks and the static build succeed. To deploy manually, use **Actions → Build and deploy to Hostinger → Run workflow** on `main`.
 
 FITFUEL gives general fitness guidance, not medical advice.
