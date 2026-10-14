@@ -234,10 +234,10 @@ export function dayMeals(day: DayKey, diet: DietType, mealsPerDay: number, aller
     let bestScore = Number.POSITIVE_INFINITY;
     const current: PlannedMeal[] = [];
 
-    function choose(slotIndex: number) {
+    function choose(slotIndex: number, maxBudget: number) {
       if (slotIndex === choices.length) {
         const cost = sum(current, "rs");
-        if (cost > budgetLimit) return;
+        if (cost > maxBudget) return;
         const calorieError = kcal == null ? 0 : Math.abs(sum(current, "kcal") - kcal);
         const changedOptions = current.reduce((n, meal, i) => n + Number(meal.option !== preferred[i].option), 0);
         const score = calorieError + changedOptions * 10;
@@ -249,12 +249,12 @@ export function dayMeals(day: DayKey, diet: DietType, mealsPerDay: number, aller
       }
       for (const option of choices[slotIndex]) {
         current.push(option.meal);
-        choose(slotIndex + 1);
+        choose(slotIndex + 1, maxBudget);
         current.pop();
       }
     }
 
-    choose(0);
+    choose(0, budgetLimit);
     if (best) meals = best;
     else {
       meals = [];
