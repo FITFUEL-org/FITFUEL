@@ -18,6 +18,15 @@ npm test                     # planner unit tests
 npm run build                # static export to out/
 ```
 
+## Plain HTML demo (no React or Next.js)
+The standalone `static-demo/` version is a browser-only UI for trying the budget-aware meal plan and home/gym exercise filters. Preferences are saved in the browser's local storage; this demo does not use accounts or Supabase.
+
+From the repository root, run a local static server:
+```bash
+python -m http.server 8000
+```
+Then open http://localhost:8000/static-demo/. The exercise library is loaded from `public/data/exercises.json`.
+
 ## Structure
 | Path | What |
 |---|---|

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10120f">
+    <title>FITFUEL — Your fitness plan</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-frame">
+      <aside class="sidebar">
+        <a class="brand" href="#" aria-label="FITFUEL home"><span class="brand-mark">F</span><span>FIT<span class="accent">FUEL</span></span></a>
+        <p class="eyebrow side-label">YOUR SPACE</p>
+        <nav class="main-nav" aria-label="Main navigation">
+          <button class="nav-item active" data-view="overview"><span>01</span> Overview</button>
+          <button class="nav-item" data-view="workout"><span>02</span> Workout plan</button>
+          <button class="nav-item" data-view="diet"><span>03</span> Daily diet</button>
+          <button class="nav-item" data-view="exercises"><span>04</span> Exercise library</button>
+          <button class="nav-item" data-view="profile"><span>05</span> Preferences</button>
+        </nav>
+        <div class="side-note"><span class="live-dot"></span> YOUR PLAN, YOUR PACE</div>
+      </aside>
+      <main class="main-content">
+        <header class="topbar">
+          <div><span class="eyebrow">FITNESS THAT FITS YOUR LIFE</span><h1 id="page-title">Your overview</h1></div>
+          <div class="topbar-actions"><span class="local-badge">LOCAL DEMO</span><button class="avatar" data-view="profile" aria-label="Open preferences">FF</button></div>
+        </header>
+        <div id="load-error" class="notice error hidden" role="alert"></div>
+        <div id="app-view" aria-live="polite"></div>
+        <footer class="footer"><span>FITFUEL <span class="accent">/</span> FIND YOUR STRONG</span><span>Demo data is saved in this browser only.</span></footer>
+      </main>
+    </div>
+  </body>
+</html>
