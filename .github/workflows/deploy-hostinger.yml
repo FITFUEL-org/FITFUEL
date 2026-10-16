@@ -65,9 +65,11 @@ jobs:
             fi
           done
 
-      - name: Deploy to Hostinger over FTPS
+      - name: Deploy to Hostinger over FTPS (attempt 1)
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        id: ftp_deploy_attempt_1
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server: ${{ secrets.HOSTINGER_FTP_SERVER }}
           username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
@@ -75,3 +77,30 @@ jobs:
           protocol: ftps
           local-dir: ./out/
           server-dir: ${{ vars.HOSTINGER_FTP_SERVER_DIR }}
+          timeout: 120000
+
+      - name: Deploy to Hostinger over FTPS (attempt 2)
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && steps.ftp_deploy_attempt_1.outcome == 'failure'
+        id: ftp_deploy_attempt_2
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./out/
+          server-dir: ${{ vars.HOSTINGER_FTP_SERVER_DIR }}
+          timeout: 120000
+
+      - name: Deploy to Hostinger over FTPS (attempt 3)
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && steps.ftp_deploy_attempt_1.outcome == 'failure' && steps.ftp_deploy_attempt_2.outcome == 'failure'
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./out/
+          server-dir: ${{ vars.HOSTINGER_FTP_SERVER_DIR }}
+          timeout: 120000
